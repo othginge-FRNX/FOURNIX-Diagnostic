@@ -46,7 +46,7 @@
         <button id="appForwardBtn" class="nav-history-btn" title="Avancer" disabled>→</button>
       </div>
       <div class="topbar-brand">
-        <div class="brand-title">FOURNIX FieldDiag</div>
+        <div class="brand-title">FOURNIX FieldDiag <span id="appVersionBadge" class="version-badge">V11</span></div>
         <div id="headerSubtitle" class="small top-muted">Structure · pathologies · relevés terrain</div>
       </div>
       <button id="lockBtn" class="ghost small-btn">Verrouiller</button>
@@ -305,6 +305,18 @@
         <svg id="annotationLayer" class="annotation-layer" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
       <div id="viewerLoading" class="viewer-loading hidden">Chargement du plan…</div>
+      <div id="fileOpenError" class="file-open-error hidden">
+        <strong id="fileOpenErrorTitle">Impossible d’ouvrir ce fichier</strong>
+        <p id="fileOpenErrorText"></p>
+        <div class="file-open-error-actions">
+          <button id="retryOpenFileBtn" class="primary" type="button">Réessayer</button>
+          <label class="secondary file-btn relink-file-btn">
+            Réimporter ce fichier
+            <input id="relinkFileInput" type="file" accept=".pdf,.dwg,.dxf,image/*">
+          </label>
+          <button id="closeFileErrorBtn" class="secondary" type="button">Fermer</button>
+        </div>
+      </div>
     </div>
 
     <div class="viewer-pagebar">

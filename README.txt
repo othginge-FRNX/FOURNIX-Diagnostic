@@ -120,3 +120,16 @@ Si une ancienne version reste bloquée après la mise à jour :
 - Appuyer sur « Actualiser l'application »
 - Cette opération efface uniquement les caches techniques et service workers.
 - Elle ne supprime pas les projets stockés dans IndexedDB.
+
+
+V11 — correctif ouverture et annotation
+- Badge V11 visible en haut de l'application.
+- Le lecteur s'ouvre immédiatement au clic sur « Ouvrir et annoter ».
+- Vérification de la présence du fichier chiffré avant lecture.
+- Les nouveaux imports sont relus après enregistrement avant d'apparaître dans le projet.
+- Les écritures IndexedDB attendent la fin réelle de la transaction.
+- Si un ancien document est manquant ou illisible, FieldDiag affiche une erreur claire.
+- Bouton « Réimporter ce fichier » pour réparer un document sans supprimer le projet.
+- PDF.js dispose de plusieurs sources de secours.
+- LibreDWG dispose de plusieurs sources de secours.
+- L'ouverture des fichiers utilise aussi une délégation d'événement de secours.

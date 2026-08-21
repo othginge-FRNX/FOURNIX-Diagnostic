@@ -114,8 +114,10 @@
   ];
 
 
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  if(window.pdfjsLib){
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
 
   function uuid(prefix='id') {
     if (crypto.randomUUID) return `${prefix}-${crypto.randomUUID()}`;
@@ -134,6 +136,46 @@
     const a = new Uint8Array(bin.length);
     for (let i=0;i<bin.length;i++) a[i] = bin.charCodeAt(i);
     return a;
+  }
+
+
+  const runtimeScriptCache=new Map();
+
+  function loadRuntimeScript(url,timeout=15000){
+    if(runtimeScriptCache.has(url)) return runtimeScriptCache.get(url);
+    const promise=new Promise((resolve,reject)=>{
+      const s=document.createElement('script');
+      s.src=url;
+      s.async=true;
+      const timer=setTimeout(()=>{
+        s.remove();
+        reject(new Error('SCRIPT_TIMEOUT'));
+      },timeout);
+      s.onload=()=>{clearTimeout(timer);resolve()};
+      s.onerror=()=>{clearTimeout(timer);s.remove();reject(new Error('SCRIPT_LOAD_FAILED'))};
+      document.head.appendChild(s);
+    });
+    runtimeScriptCache.set(url,promise);
+    return promise;
+  }
+
+  async function ensurePdfEngine(){
+    if(window.pdfjsLib) return window.pdfjsLib;
+
+    let last=null;
+    for(const url of [
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+      'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js',
+      'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js'
+    ]){
+      try{
+        await loadRuntimeScript(url);
+        if(window.pdfjsLib) break;
+      }catch(e){last=e}
+    }
+
+    if(!window.pdfjsLib) throw last||new Error('PDF_ENGINE_UNAVAILABLE');
+    return window.pdfjsLib;
   }
 
   function showToast(msg, ms=2200) {
@@ -272,16 +314,24 @@
   }
   function txPut(store,obj) {
     return new Promise((resolve,reject) => {
-      const r = db.transaction(store,'readwrite').objectStore(store).put(obj);
-      r.onsuccess = () => resolve(obj);
-      r.onerror = () => reject(r.error);
+      const tx=db.transaction(store,'readwrite');
+      const r=tx.objectStore(store).put(obj);
+      let requestError=null;
+      r.onerror=()=>{requestError=r.error};
+      tx.oncomplete=()=>resolve(obj);
+      tx.onerror=()=>reject(tx.error||requestError||new Error('IndexedDB write failed'));
+      tx.onabort=()=>reject(tx.error||requestError||new Error('IndexedDB write aborted'));
     });
   }
   function txDelete(store,id) {
     return new Promise((resolve,reject) => {
-      const r = db.transaction(store,'readwrite').objectStore(store).delete(id);
-      r.onsuccess = () => resolve();
-      r.onerror = () => reject(r.error);
+      const tx=db.transaction(store,'readwrite');
+      const r=tx.objectStore(store).delete(id);
+      let requestError=null;
+      r.onerror=()=>{requestError=r.error};
+      tx.oncomplete=()=>resolve();
+      tx.onerror=()=>reject(tx.error||requestError||new Error('IndexedDB delete failed'));
+      tx.onabort=()=>reject(tx.error||requestError||new Error('IndexedDB delete aborted'));
     });
   }
   function txGetAll(store) {
@@ -607,6 +657,91 @@
     await saveReportFields();showToast('Compte rendu pré-rempli');
   }
 
+
+  let pendingRelinkFileId=null;
+
+  function showFileOpenError(title,text,fileId=null){
+    pendingRelinkFileId=fileId||currentFile?.id||null;
+    $('viewerLoading').classList.add('hidden');
+    $('fileOpenErrorTitle').textContent=title||'Impossible d’ouvrir ce fichier';
+    $('fileOpenErrorText').textContent=text||'Le fichier n’est pas disponible.';
+    $('fileOpenError').classList.remove('hidden');
+  }
+
+  function hideFileOpenError(){
+    $('fileOpenError').classList.add('hidden');
+    $('fileOpenErrorText').textContent='';
+  }
+
+  async function readStoredFileBytes(fileId){
+    const rec=await txGet('records',fileId);
+    if(!rec) throw new Error('FILE_RECORD_MISSING');
+    if(!rec.iv || !rec.data) throw new Error('FILE_RECORD_INVALID');
+    try{
+      return await decryptBytes(rec);
+    }catch(e){
+      console.error('File decrypt error',e);
+      throw new Error('FILE_DECRYPT_FAILED');
+    }
+  }
+
+  async function verifyStoredFile(fileId,expectedSize=0){
+    const bytes=await readStoredFileBytes(fileId);
+    if(!bytes || !bytes.byteLength) throw new Error('FILE_EMPTY');
+    if(expectedSize && bytes.byteLength!==expectedSize){
+      console.warn('Stored size differs',expectedSize,bytes.byteLength);
+    }
+    return bytes;
+  }
+
+  function explainFileError(err){
+    const code=err?.message||'';
+    if(code==='FILE_RECORD_MISSING') return 'Le projet connaît ce document, mais le fichier n’est plus présent dans le stockage local du téléphone.';
+    if(code==='FILE_RECORD_INVALID') return 'Les données locales de ce document sont incomplètes.';
+    if(code==='FILE_DECRYPT_FAILED') return 'Le fichier est présent mais son contenu chiffré ne peut pas être relu. Réimporte le document pour réparer le lien.';
+    if(code==='FILE_EMPTY') return 'Le document enregistré est vide.';
+    if(code==='PDF_ENGINE_UNAVAILABLE') return 'Le moteur PDF n’a pas pu être chargé. Vérifie la connexion une première fois puis réessaie.';
+    return 'Le lecteur a rencontré une erreur. Tu peux réessayer ou réimporter le document.';
+  }
+
+  async function relinkStoredFile(fileId,file){
+    const meta=activeProject?.files?.find(f=>f.id===fileId);
+    if(!meta) throw new Error('FILE_META_MISSING');
+
+    const bytes=new Uint8Array(await file.arrayBuffer());
+    await putSecureBinary(fileId,'file',activeProject.id,bytes);
+    await verifyStoredFile(fileId,bytes.byteLength);
+
+    const ext=(file.name.split('.').pop()||meta.ext||'').toLowerCase();
+    meta.name=file.name||meta.name;
+    meta.ext=ext;
+    meta.mime=file.type||meta.mime||'';
+    meta.size=file.size||bytes.byteLength;
+    meta.kind=ext==='pdf'?'pdf':(['dwg','dxf'].includes(ext)?'cad':'image');
+    meta.relinkedAt=new Date().toISOString();
+
+    if(meta.kind==='pdf'){
+      try{
+        const engine=await ensurePdfEngine();
+        if(window.pdfjsLib){
+          pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+        const pdf=await engine.getDocument({data:bytes.slice().buffer}).promise;
+        meta.pageCount=pdf.numPages;
+        pdf.destroy();
+      }catch{
+        meta.pageCount=meta.pageCount||1;
+      }
+    }else{
+      meta.pageCount=1;
+    }
+
+    await saveProject();
+    renderPlans();
+    return bytes;
+  }
+
   async function importPlan(file) {
     if (!activeProject || !file) return;
     const ext = (file.name.split('.').pop()||'').toLowerCase();
@@ -619,11 +754,17 @@
     const bytes = new Uint8Array(await file.arrayBuffer());
     const fileId = uuid('file');
     await putSecureBinary(fileId,'file',activeProject.id,bytes);
+    await verifyStoredFile(fileId,bytes.byteLength);
     let kind = ext === 'pdf' ? 'pdf' : (ext === 'dwg' || ext === 'dxf' ? 'cad' : 'image');
     let pageCount = 1;
     if (kind === 'pdf') {
       try {
-        const pdf = await pdfjsLib.getDocument({data:bytes.slice().buffer}).promise;
+        const engine = await ensurePdfEngine();
+        if(window.pdfjsLib){
+          pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+        const pdf = await engine.getDocument({data:bytes.slice().buffer}).promise;
         pageCount = pdf.numPages;
         pdf.destroy();
       } catch {}
@@ -665,7 +806,6 @@
           <button class="secondary" data-delete-file="${f.id}">Supprimer</button>
         </div>
       </div>`).join('');
-    box.querySelectorAll('[data-open-file]').forEach(b=>b.onclick=()=>openViewer(b.dataset.openFile));
     box.querySelectorAll('[data-download-file]').forEach(b=>b.onclick=()=>downloadOriginal(b.dataset.downloadFile));
     box.querySelectorAll('[data-delete-file]').forEach(b=>b.onclick=()=>deletePlan(b.dataset.deleteFile));
   }
@@ -695,36 +835,54 @@
   }
 
   async function openViewer(fileId, page=1, addHistory=true) {
-    currentFile = activeProject.files.find(f=>f.id===fileId);
-    if (!currentFile) return;
-    currentFileBuffer = await getSecureBinary(fileId);
-    if (!currentFileBuffer) return;
-    currentPage = Math.max(1,page);
-    currentPdf = null;
-    currentCadSvg = null;
-    undoStack = [];
-    $('viewerFileName').textContent = currentFile.name;
+    const fileMeta=activeProject?.files?.find(f=>f.id===fileId);
+    if(!fileMeta){
+      showToast('Référence de fichier introuvable',3200);
+      return;
+    }
+
+    currentFile=fileMeta;
+    currentPage=Math.max(1,page);
+    currentPdf=null;
+    currentCadSvg=null;
+    undoStack=[];
+
+    $('viewerFileName').textContent=currentFile.name;
     $('viewerTools').classList.remove('cad-tools-hidden');
     $('draw-style').classList.remove('cad-tools-hidden');
     $('exportPageBtn').disabled=false;
     $('exportPageBtn').title='';
     $('viewer').classList.remove('hidden');
     $('viewerLoading').classList.remove('hidden');
+    $('viewerLoading').textContent='Lecture du fichier…';
+    hideFileOpenError();
     resetView();
 
-    try {
-      if (currentFile.kind === 'pdf') {
-        currentPdf = await pdfjsLib.getDocument({data:currentFileBuffer.slice().buffer}).promise;
-        totalPages = currentPdf.numPages;
-        currentPage = Math.min(currentPage,totalPages);
+    try{
+      currentFileBuffer=await readStoredFileBytes(fileId);
+      if(!currentFileBuffer?.byteLength) throw new Error('FILE_EMPTY');
+
+      if(currentFile.kind==='pdf'){
+        $('viewerLoading').textContent='Ouverture du PDF…';
+        const engine=await ensurePdfEngine();
+        if(window.pdfjsLib){
+          pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+        currentPdf=await engine.getDocument({data:currentFileBuffer.slice().buffer}).promise;
+        totalPages=currentPdf.numPages;
+        currentPage=Math.min(currentPage,totalPages);
         await renderPdfPage();
-      } else if (currentFile.kind === 'image') {
-        totalPages = 1;
+      }else if(currentFile.kind==='image'){
+        $('viewerLoading').textContent='Ouverture de l’image…';
+        totalPages=1;
         await renderImage();
-      } else {
-        totalPages = 1;
+      }else{
+        $('viewerLoading').textContent='Ouverture du DWG / DXF…';
+        totalPages=1;
         await renderCad();
       }
+
       updatePageInfo();
       if(currentFile.kind!=='cad' || cadDisplayMode==='legacy'){
         renderAnnotations();
@@ -732,21 +890,28 @@
       }else{
         $('cadModeBar').classList.remove('hidden');
       }
-      if(addHistory) pushAppHistory({screen:'viewer',projectId:activeProject?.id||null,fileId:currentFile.id,page:currentPage,tool:activeTool});
-    } catch (err) {
-      console.error('Ouverture document échouée',err);
-      try{
-        $('planContent').style.display='';
-        $('viewerTools').classList.remove('cad-tools-hidden');
-        $('draw-style').classList.remove('cad-tools-hidden');
-        if($('cadProBase')) $('cadProBase').classList.add('hidden');
-        if($('cadModeBar')) $('cadModeBar').classList.add('hidden');
-      }catch{}
-      showToast('Impossible d’ouvrir ce document. Ferme le lecteur puis réessaie.',4200);
-    } finally {
+
+      if(addHistory){
+        pushAppHistory({
+          screen:'viewer',
+          projectId:activeProject?.id||null,
+          fileId:currentFile.id,
+          page:currentPage,
+          tool:activeTool
+        });
+      }
+    }catch(err){
+      console.error('Open viewer failed',err);
+      showFileOpenError(
+        `Impossible d’ouvrir « ${currentFile.name} »`,
+        explainFileError(err),
+        fileId
+      );
+    }finally{
       $('viewerLoading').classList.add('hidden');
     }
   }
+
 
   function closeViewer(addHistory=true) {
     destroyCadProViewer();
@@ -775,6 +940,7 @@
   }
 
   async function renderPdfPage() {
+    await ensurePdfEngine();
     clearBaseLayers();
     $('planContent').style.display='';
     $('viewerTools').classList.remove('cad-tools-hidden');
@@ -933,7 +1099,20 @@
     $('cadAnnotationsBtn').textContent='Espace objet bêta';
     $('cadStatus').textContent='Mode annotation · conversion SVG';
 
-    const mod = await import('https://cdn.jsdelivr.net/npm/@mlightcad/libredwg-web/dist/libredwg-web.js');
+    let mod=null,lastCadImportError=null;
+    for(const url of [
+      'https://cdn.jsdelivr.net/npm/@mlightcad/libredwg-web/dist/libredwg-web.js',
+      'https://unpkg.com/@mlightcad/libredwg-web/dist/libredwg-web.js'
+    ]){
+      try{
+        mod=await import(url);
+        if(mod?.LibreDwg) break;
+      }catch(e){
+        lastCadImportError=e;
+        console.warn('LibreDWG source failed',url,e);
+      }
+    }
+    if(!mod?.LibreDwg) throw lastCadImportError||new Error('DWG_ENGINE_UNAVAILABLE');
     const lib = await mod.LibreDwg.create();
     const type = currentFile.ext==='dxf' ? mod.Dwg_File_Type.DXF : mod.Dwg_File_Type.DWG;
     const dwg = lib.dwg_read_data(currentFileBuffer.slice().buffer,type);
@@ -2234,6 +2413,34 @@
   $('restoreProjectInput').onchange=async e=>{const f=e.target.files?.[0];e.target.value='';if(f)await restoreBackup(f)};
 
   $('closeViewerBtn').onclick=closeViewer;
+  $('retryOpenFileBtn').onclick=()=>currentFile?.id && openViewer(currentFile.id,currentPage||1,false);
+  $('closeFileErrorBtn').onclick=()=>closeViewer();
+  $('relinkFileInput').onchange=async e=>{
+    const file=e.target.files?.[0];
+    e.target.value='';
+    if(!file || !pendingRelinkFileId) return;
+    $('fileOpenError').classList.add('hidden');
+    $('viewerLoading').classList.remove('hidden');
+    $('viewerLoading').textContent='Réimportation et vérification…';
+    try{
+      await relinkStoredFile(pendingRelinkFileId,file);
+      showToast('Fichier réparé');
+      await openViewer(pendingRelinkFileId,1,false);
+    }catch(err){
+      console.error(err);
+      showFileOpenError('Réimportation impossible',explainFileError(err),pendingRelinkFileId);
+    }finally{
+      $('viewerLoading').classList.add('hidden');
+    }
+  };
+
+  document.addEventListener('click',e=>{
+    const btn=e.target.closest?.('[data-open-file]');
+    if(!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    openViewer(btn.dataset.openFile);
+  });
   $('zoomInBtn').onclick=()=>currentFile?.kind==='cad'?cadZoom(1):setZoom(zoom*1.3,{x:innerWidth/2,y:innerHeight/2});
   $('zoomOutBtn').onclick=()=>currentFile?.kind==='cad'?cadZoom(-1):setZoom(zoom/1.3,{x:innerWidth/2,y:innerHeight/2});
   $('fitBtn').onclick=()=>currentFile?.kind==='cad'?cadFit('auto'):fitToScreen();

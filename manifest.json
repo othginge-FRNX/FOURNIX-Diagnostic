@@ -6,7 +6,7 @@
   "display": "standalone",
   "background_color": "#fff8f3",
   "theme_color": "#ea580c",
-  "description": "FOURNIX FieldDiag — Assistant terrain pour l’ingénieur structure.",
+  "description": "FOURNIX FieldDiag V11 — Assistant terrain pour l’ingénieur structure.",
   "icons": [
     {
       "src": "./icon-192.png",

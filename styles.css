@@ -387,3 +387,36 @@ body{background:radial-gradient(circle at top right,#fff1e7 0,#fff8f3 34%,#f7f4f
   border-color:#fb923c;
   font-weight:800;
 }
+
+
+/* FOURNIX FieldDiag V11 */
+.version-badge{
+  display:inline-block;
+  vertical-align:2px;
+  margin-left:5px;
+  padding:2px 5px;
+  border-radius:6px;
+  background:#fff7ed;
+  color:#c2410c;
+  font-size:9px;
+  font-weight:900;
+}
+.file-open-error{
+  position:absolute;
+  z-index:30;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:min(470px,calc(100% - 24px));
+  background:#fff;
+  color:#1f2937;
+  border:2px solid #fb923c;
+  border-radius:16px;
+  padding:16px;
+  box-shadow:0 24px 80px rgba(0,0,0,.35);
+}
+.file-open-error strong{display:block;color:#9a3412;font-size:15px}
+.file-open-error p{font-size:12px;color:#4b5563;margin:8px 0 12px}
+.file-open-error-actions{display:flex;gap:7px;flex-wrap:wrap}
+.file-open-error-actions>*{flex:1;min-width:125px}
+.relink-file-btn{display:flex;align-items:center;justify-content:center}
