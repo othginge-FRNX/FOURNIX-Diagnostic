@@ -4,11 +4,11 @@
   --card:#ffffff;
   --text:#111827;
   --muted:#6b7280;
-  --line:#dfe4ea;
+  --line:#f1d5c2;
   --dark:#0a1120;
   --danger:#b91c1c;
   --ok:#047857;
-  --blue:#1d4ed8;
+  --blue:#ea580c;
   --shadow:0 10px 30px rgba(17,24,39,.08);
 }
 *{box-sizing:border-box}
@@ -17,9 +17,9 @@ button,input,select,textarea{font:inherit}
 button{cursor:pointer}
 .hidden{display:none!important}
 .screen{min-height:100vh}
-.center-screen{display:grid;place-items:center;padding:20px;background:linear-gradient(180deg,#111827,#222b3a)}
+.center-screen{display:grid;place-items:center;padding:20px;background:linear-gradient(155deg,#7c2d12,#ea580c 55%,#fb923c)}
 .auth-card{width:min(430px,100%);background:#fff;border-radius:22px;padding:24px;box-shadow:var(--shadow)}
-.brand-mark{width:52px;height:52px;border-radius:14px;background:#111827;color:#fff;display:grid;place-items:center;font-size:28px;font-weight:900}
+.brand-mark{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#c2410c,#f97316);color:#fff;display:grid;place-items:center;font-size:28px;font-weight:900}
 h1{font-size:25px;margin:16px 0 4px}
 h2{margin:0;font-size:23px}
 h3{margin:0 0 10px;font-size:17px}
@@ -28,14 +28,14 @@ label{display:block;font-size:12px;color:var(--muted);margin:12px 0 5px}
 input,select,textarea{width:100%;padding:11px 12px;border:1px solid #cfd5dd;border-radius:11px;background:#fff;color:#111827}
 textarea{resize:vertical}
 .primary,.secondary,.ghost{border-radius:11px;padding:10px 14px;font-weight:700}
-.primary{background:linear-gradient(135deg,#0b1729,#14243d);color:white;border:1px solid #0b1729;box-shadow:0 6px 16px rgba(8,19,35,.14)}
+.primary{background:linear-gradient(135deg,#c2410c,#f97316);color:white;border:1px solid #c2410c;box-shadow:0 7px 18px rgba(234,88,12,.22)}
 .secondary{background:white;color:#111827;border:1px solid #cfd5dd}
 .ghost{background:transparent;color:#111827;border:1px solid #cfd5dd}
 .full{width:100%;margin-top:12px}
 .small{font-size:12px}
 .muted{color:var(--muted)}
 .status{font-size:12px;min-height:18px}
-.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(110deg,#07101d,#0f2038 60%,#16304e);color:white;border-bottom:1px solid #2b3444;box-shadow:0 8px 22px rgba(5,14,28,.18)}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(110deg,#9a3412,#ea580c 58%,#fb923c);color:white;border-bottom:1px solid #c2410c;box-shadow:0 8px 22px rgba(154,52,18,.22)}
 .brand-title{font-weight:850}
 .top-muted{color:#bbc4d2;margin-top:2px}
 .topbar .ghost{color:#fff;border-color:#4b5563}
@@ -58,7 +58,7 @@ textarea{resize:vertical}
 .project-title-wrap p{color:var(--muted);font-size:12px}
 .tabs{display:flex;overflow:auto;gap:6px;padding:3px;margin-bottom:12px}
 .tabs button{white-space:nowrap;border:1px solid var(--line);background:white;border-radius:10px;padding:9px 11px}
-.tabs button.active{background:#111827;color:#fff;border-color:#111827}
+.tabs button.active{background:linear-gradient(135deg,#c2410c,#f97316);color:#fff;border-color:#c2410c}
 .project-tab{display:none}
 .project-tab.active{display:block}
 .section-line{display:flex;justify-content:space-between;gap:10px;align-items:center}
@@ -83,13 +83,13 @@ dialog{width:min(520px,calc(100% - 24px));border:0;border-radius:18px;padding:18
 dialog::backdrop{background:rgba(0,0,0,.55)}
 .dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
 .viewer{position:fixed;inset:0;background:#111827;z-index:100;display:grid;grid-template-rows:auto 1fr auto auto auto}
-.viewer-top,.viewer-pagebar,.draw-style,.viewer-tools{background:#0b0f17;color:#fff;border-color:#2c3442}
+.viewer-top,.viewer-pagebar,.draw-style,.viewer-tools{background:#2a160d;color:#fff;border-color:#6b341a}
 .viewer-top{display:flex;gap:8px;align-items:center;padding:8px}
 .viewer-file{flex:1;min-width:0}
 .viewer-file strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .viewer-file span{font-size:11px;color:#aeb7c5}
 .viewer-zoom{display:flex;gap:5px}
-.viewer-btn{background:#171e2a;color:#fff;border:1px solid #384255;border-radius:8px;padding:7px 9px;font-size:12px}
+.viewer-btn{background:#43210f;color:#fff;border:1px solid #7c3a19;border-radius:8px;padding:7px 9px;font-size:12px}
 .viewer-stage{position:relative;overflow:hidden;background:#202733;touch-action:none}
 .plan-content{position:absolute;left:0;top:0;transform-origin:0 0;background:white}
 .base-layer{position:absolute;left:0;top:0;width:100%;height:100%;display:none}
@@ -104,7 +104,7 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
 .draw-style input[type=color]{width:34px;height:28px;padding:1px;border:0;background:transparent}
 .draw-style input[type=range]{width:90px;padding:0}
 .viewer-tools{display:flex;overflow-x:auto;gap:5px;padding:7px}
-.viewer-tools button{white-space:nowrap;background:#171e2a;color:#fff;border:1px solid #384255;border-radius:8px;padding:8px 10px;font-size:11px}
+.viewer-tools button{white-space:nowrap;background:#43210f;color:#fff;border:1px solid #7c3a19;border-radius:8px;padding:8px 10px;font-size:11px}
 .viewer-tools button.active{background:#fff;color:#111827;border-color:#fff;font-weight:800}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:300;background:#111827;color:#fff;border-radius:10px;padding:10px 14px;font-size:12px;box-shadow:var(--shadow)}
 .marker-label{font-size:10px;font-family:system-ui,sans-serif;paint-order:stroke;stroke:white;stroke-width:3px;stroke-linejoin:round}
@@ -126,8 +126,74 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
 /* FOURNIX DIAG v2 */
 .brand-title{letter-spacing:.4px}.brand-title::after{content:'  FIELD';font-size:9px;color:#ffb84a;border:1px solid rgba(255,184,74,.45);border-radius:99px;padding:3px 6px;margin-left:7px;vertical-align:2px}
 .form-grid,.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mini-area{min-height:95px}.report-grid>div label{margin-top:4px}
-.visit-head-card{border-top:3px solid #ffb84a}.progress-pill{background:#0f2038;color:#fff;border-radius:99px;padding:6px 9px;font-size:11px;font-weight:800}.regulatory-hints{display:grid;gap:7px;margin-top:10px}.reg-hint{border-left:4px solid #ffb84a;background:#fff7e8;padding:9px 10px;border-radius:8px;font-size:12px}.reg-hint.amiante{border-color:#c2410c;background:#fff3ed}.reg-hint.plomb{border-color:#7c3aed;background:#f7f2ff}
-.question-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:9px}.question-card h4{font-size:13px;margin:0 0 7px}.question-card .question-answer{display:grid;grid-template-columns:120px 1fr;gap:8px}.question-card .why{font-size:11px;color:var(--muted);margin-top:7px}.question-group-title{font-size:13px;font-weight:850;color:#0d2744;margin:16px 4px 8px;text-transform:uppercase;letter-spacing:.6px}.answer-status{font-size:10px;border-radius:99px;padding:3px 7px;background:#edf2f7;color:#53606f;margin-left:6px}
-.viewer{background:#07101d}.viewer-stage{background:#172231}.viewer-tools button.active{background:#ffb84a;color:#101721;border-color:#ffb84a}.smart-toggle{color:#dce5f0!important}.smart-toggle input{width:auto!important}.recording-time{font-variant-numeric:tabular-nums;font-weight:800}.audio-controls{display:flex;gap:8px;align-items:center}.audio-controls button{flex:1}.photo-view-wrap video{display:block;max-width:100%;max-height:70vh;margin:0 auto;border-radius:10px}.photo-view-wrap audio{width:100%;margin-top:10px}
+.visit-head-card{border-top:3px solid #ffb84a}.progress-pill{background:#c2410c;color:#fff;border-radius:99px;padding:6px 9px;font-size:11px;font-weight:800}.regulatory-hints{display:grid;gap:7px;margin-top:10px}.reg-hint{border-left:4px solid #ffb84a;background:#fff7e8;padding:9px 10px;border-radius:8px;font-size:12px}.reg-hint.amiante{border-color:#c2410c;background:#fff3ed}.reg-hint.plomb{border-color:#7c3aed;background:#f7f2ff}
+.question-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:9px}.question-card h4{font-size:13px;margin:0 0 7px}.question-card .question-answer{display:grid;grid-template-columns:120px 1fr;gap:8px}.question-card .why{font-size:11px;color:var(--muted);margin-top:7px}.question-group-title{font-size:13px;font-weight:850;color:#9a3412;margin:16px 4px 8px;text-transform:uppercase;letter-spacing:.6px}.answer-status{font-size:10px;border-radius:99px;padding:3px 7px;background:#edf2f7;color:#53606f;margin-left:6px}
+.viewer{background:#23140d}.viewer-stage{background:#2d211b}.viewer-tools button.active{background:#fb923c;color:#27140b;border-color:#fb923c}.smart-toggle{color:#dce5f0!important}.smart-toggle input{width:auto!important}.recording-time{font-variant-numeric:tabular-nums;font-weight:800}.audio-controls{display:flex;gap:8px;align-items:center}.audio-controls button{flex:1}.photo-view-wrap video{display:block;max-width:100%;max-height:70vh;margin:0 auto;border-radius:10px}.photo-view-wrap audio{width:100%;margin-top:10px}
 .pathology-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.pathology-legend span{font-size:10px;padding:5px 7px;border-radius:99px;border:1px solid var(--line);background:#fafbfc}.media-chip{background:#111827;color:#fff}.ocr-overlay{position:absolute;inset:0;background:rgba(7,16,29,.82);display:grid;place-items:center;color:white;z-index:40;padding:20px;text-align:center}
 @media(max-width:650px){.form-grid,.report-grid{grid-template-columns:1fr}.question-card .question-answer{grid-template-columns:1fr}.tabs{margin-left:-4px;margin-right:-4px}.viewer-tools{padding-bottom:calc(7px + env(safe-area-inset-bottom))}}
+
+
+/* FOURNIX DIAG v3 - thème orange et outils dessin */
+:root{--orange:#f97316;--orange-dark:#c2410c;--orange-light:#fff7ed;--orange-soft:#ffedd5}
+body{background:radial-gradient(circle at top right,#fff1e7 0,#fff8f3 34%,#f7f4f2 100%)}
+.hero{border-top:3px solid var(--orange)}
+.card,.project-card{box-shadow:0 8px 24px rgba(124,45,18,.055)}
+.secondary:hover,.ghost:hover{border-color:#fb923c;background:#fff7ed}
+.tool-summary span,.badge{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
+.draw-style{gap:10px;flex-wrap:wrap;padding:7px 9px}
+.draw-style label{background:#3b1c0d;border:1px solid #713515;border-radius:8px;padding:4px 7px;color:#ffe7d6}
+.draw-style .smart-toggle{background:#3b1c0d}
+.compact-select{width:auto!important;min-width:94px;padding:5px 7px!important;border-radius:7px!important;background:#fff7ed!important;color:#7c2d12!important;border:1px solid #fb923c!important}
+.selection-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap;background:linear-gradient(135deg,#7c2d12,#c2410c);padding:5px 7px;border-radius:9px;border:1px solid #fb923c}
+.selection-tools>span{font-size:11px;font-weight:800;color:#fff7ed}
+.selection-tools label{margin:0;background:transparent;border:0;padding:0}
+.selection-tools input[type=range]{width:105px}
+.danger-mini{border:1px solid #fecaca;background:#fff;color:#b91c1c;border-radius:7px;padding:6px 8px;font-size:11px;font-weight:800}
+.eraser-tool{border-color:#fb7185!important}
+.viewer-tools .eraser-tool.active{background:#ef4444!important;border-color:#ef4444!important;color:#fff!important}
+.viewer-loading{background:rgba(67,33,15,.88)}
+.toast{background:linear-gradient(135deg,#9a3412,#ea580c)}
+.marker-label{stroke:#fffaf5}
+@media(max-width:650px){.draw-style{max-height:130px;overflow:auto}.selection-tools{width:100%}.compact-select{min-width:84px}}
+
+
+/* FOURNIX DIAG v4 - fiche technicien */
+.intervention-head{border-top:3px solid var(--orange)}
+.intervention-meta{margin-top:10px}
+.intervention-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.intervention-actions button{flex:1;min-width:145px}
+.intervention-warnings{margin-top:10px}
+.prep-warning{background:#fff1f2;border:1px solid #fecdd3;border-left:4px solid #dc2626;border-radius:10px;padding:10px;color:#881337;font-size:12px}
+.prep-warning div{margin-top:4px}
+.prep-ok{background:#f0fdf4;border:1px solid #bbf7d0;border-left:4px solid #16a34a;border-radius:10px;padding:9px;color:#166534;font-size:12px}
+.intervention-progressbar{height:8px;background:#ffedd5;border-radius:99px;overflow:hidden;margin:10px 0 14px}
+.intervention-progressbar>div{height:100%;width:0;background:linear-gradient(90deg,#ea580c,#fb923c);transition:width .2s}
+.prep-group{margin-top:15px}
+.prep-group h4{margin:0 0 7px;color:#9a3412;font-size:13px;text-transform:uppercase;letter-spacing:.5px}
+.prep-item{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:flex-start;border:1px solid #fed7aa;background:#fffaf7;border-radius:12px;padding:10px;margin-bottom:7px}
+.prep-item.critical{border-left:4px solid #dc2626}
+.prep-item.done{opacity:.68;background:#f8fafc;border-color:#d1d5db}
+.prep-item.done .prep-label{text-decoration:line-through}
+.prep-check{width:20px;height:20px;margin-top:2px;accent-color:#ea580c}
+.prep-label{font-size:13px;font-weight:780}
+.prep-reason{font-size:11px;color:var(--muted);margin-top:2px}
+.prep-fields{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
+.prep-fields label{margin:0;font-size:10px;display:flex;align-items:center;gap:4px;color:#7c2d12}
+.prep-fields input,.prep-fields select{padding:5px 6px;font-size:11px;border-radius:7px;width:auto;min-width:66px}
+.prep-note-label{flex:1}
+.prep-note-label input{width:100%!important}
+.prep-delete{border:0;background:#fff1f2;color:#be123c;border-radius:7px;width:28px;height:28px;font-size:19px;line-height:1}
+@media(max-width:650px){
+  .prep-fields{display:grid;grid-template-columns:80px 1fr}
+  .prep-note-label{grid-column:1/-1}
+  .prep-fields input,.prep-fields select{width:100%}
+}
+
+
+/* FOURNIX DIAG V5 — compte rendu PDF */
+.report-top-actions{display:flex;gap:8px;flex-wrap:wrap}
+.report-top-actions button{white-space:nowrap}
+@media(max-width:650px){
+  .report-top-actions{width:100%;margin-top:8px}
+  .report-top-actions button{flex:1}
+}

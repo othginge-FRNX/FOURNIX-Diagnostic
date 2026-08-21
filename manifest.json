@@ -4,9 +4,9 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#111827",
-  "theme_color": "#111827",
-  "description": "Outil terrain pour diagnostic structure, cartographie de désordres, annotations de plans et relevés de visite.",
+  "background_color": "#fff8f3",
+  "theme_color": "#ea580c",
+  "description": "FOURNIX DIAG — visite, cartographie de désordres, compte rendu et préparation d'intervention pour diagnostic structure.",
   "icons": [
     {
       "src": "./icon-192.png",

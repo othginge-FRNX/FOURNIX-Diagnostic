@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-  <meta name="theme-color" content="#111827">
+  <meta name="theme-color" content="#ea580c">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>FOURNIX DIAG</title>
   <link rel="manifest" href="./manifest.json">
@@ -12,7 +12,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
   <div id="lockScreen" class="screen center-screen">
@@ -83,6 +82,7 @@
         <button data-project-tab="visite">Pré-visite</button>
         <button data-project-tab="observations">Constats</button>
         <button data-project-tab="notes">Compte rendu</button>
+        <button data-project-tab="intervention">Prépa intervention</button>
         <button data-project-tab="checklist">Checklist</button>
         <button data-project-tab="export">Export</button>
       </nav>
@@ -162,7 +162,10 @@
               <h3>Compte rendu de visite</h3>
               <p class="small muted">Une trame rapide pour ne rien oublier en quittant le site.</p>
             </div>
-            <button id="generateSummaryBtn" class="secondary">Pré-remplir</button>
+            <div class="report-top-actions">
+              <button id="generateSummaryBtn" class="secondary">Pré-remplir</button>
+              <button id="exportReportPdfBtn" class="primary">Compte rendu PDF</button>
+            </div>
           </div>
           <div class="report-grid">
             <div><label>Personnes présentes</label><textarea id="reportPeople" class="mini-area" placeholder="Client, exploitant, entreprise, ingénieur..."></textarea></div>
@@ -180,6 +183,61 @@
             <p class="small muted">Enregistrement automatique.</p>
             <button id="saveNotesBtn" class="secondary">Enregistrer</button>
           </div>
+        </div>
+      </section>
+
+
+      <section id="projectTabIntervention" class="project-tab">
+        <div class="card intervention-head">
+          <div class="section-line">
+            <div>
+              <h3>Préparation de l’intervention</h3>
+              <p class="small muted">Fiche technicien générée à partir de la pré-visite et du compte rendu.</p>
+            </div>
+            <button id="generateInterventionBtn" class="primary">Générer la fiche</button>
+          </div>
+
+          <div class="form-grid intervention-meta">
+            <div>
+              <label>Technicien / équipe</label>
+              <input id="interventionTechnician" placeholder="Nom du technicien ou équipe">
+            </div>
+            <div>
+              <label>Date d’intervention</label>
+              <input id="interventionDate" type="date">
+            </div>
+            <div>
+              <label>Véhicule / logistique</label>
+              <input id="interventionVehicle" placeholder="Ex. utilitaire, accès parking...">
+            </div>
+            <div>
+              <label>Référence / affaire</label>
+              <input id="interventionReference" placeholder="Référence interne">
+            </div>
+          </div>
+
+          <div id="interventionWarnings" class="intervention-warnings"></div>
+
+          <label>Consignes générales au technicien</label>
+          <textarea id="interventionInstructions" class="mini-area" placeholder="Accès, personne à contacter, horaires, zones prioritaires, précautions..."></textarea>
+
+          <div class="intervention-actions">
+            <button id="addInterventionItemBtn" class="secondary">Ajouter un élément</button>
+            <button id="resetInterventionChecksBtn" class="secondary">Décocher tout</button>
+            <button id="exportInterventionPdfBtn" class="secondary">Fiche PDF</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-line">
+            <div>
+              <h3>Matériel et préparation</h3>
+              <p id="interventionProgressText" class="small muted">0 / 0 préparé</p>
+            </div>
+            <span id="interventionProgress" class="progress-pill">0 %</span>
+          </div>
+          <div class="intervention-progressbar"><div id="interventionProgressBar"></div></div>
+          <div id="interventionList"></div>
         </div>
       </section>
 
@@ -241,17 +299,37 @@
     </div>
 
     <div class="draw-style">
-      <label>Couleur <input id="drawColor" type="color" value="#d11a2a"></label>
+      <label>Couleur <input id="drawColor" type="color" value="#f97316"></label>
       <label>Trait <input id="drawWidth" type="range" min="1" max="10" value="3"></label>
-      <label class="smart-toggle"><input id="snapAssist" type="checkbox" checked> Assistance dessin</label>
+      <label>Forme
+        <select id="shapePreset" class="compact-select">
+          <option value="auto">Auto</option>
+          <option value="circle">Cercle</option>
+          <option value="ellipse">Ellipse</option>
+          <option value="rect">Rectangle</option>
+          <option value="square">Carré</option>
+          <option value="triangle">Triangle</option>
+          <option value="diamond">Losange</option>
+          <option value="pentagon">Pentagone</option>
+          <option value="hexagon">Hexagone</option>
+          <option value="octagon">Octogone</option>
+        </select>
+      </label>
+      <label>Taille texte <input id="textSize" type="range" min="10" max="48" value="18"><span id="textSizeValue">18</span></label>
+      <label class="smart-toggle"><input id="textBold" type="checkbox"> Gras</label>
+      <label class="smart-toggle"><input id="textBox" type="checkbox" checked> Fond texte</label>
+      <div id="selectionTools" class="selection-tools hidden">
+        <span id="selectionLabel">Objet sélectionné</span>
+        <label>Taille <input id="selectionScale" type="range" min="25" max="300" value="100"><span id="selectionScaleValue">100%</span></label>
+        <button id="deleteSelectedBtn" type="button" class="danger-mini">Supprimer</button>
+      </div>
     </div>
 
     <div id="viewerTools" class="viewer-tools">
       <button data-tool="pan" class="active">Main</button>
+      <button data-tool="select">Sélection</button>
       <button data-tool="freehand">Crayon</button>
       <button data-tool="assist">Forme assistée</button>
-      <button data-tool="handwrite">Écriture</button>
-      <button id="handwritingToTextBtn">Écriture → texte</button>
       <button data-tool="line">Ligne</button>
       <button data-tool="arrow">Flèche</button>
       <button data-tool="rect">Zone</button>
@@ -263,7 +341,7 @@
       <button data-tool="audio">Audio</button>
       <button data-tool="calibrate">Calibrer</button>
       <button data-tool="measure">Mesurer</button>
-      <button data-tool="erase">Effacer</button>
+      <button data-tool="erase" class="eraser-tool">Gomme</button>
       <button id="undoBtn">Annuler</button>
     </div>
   </div>

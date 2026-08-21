@@ -1,4 +1,4 @@
-FOURNIX DIAG v2
+FOURNIX DIAG v3
 
 Application terrain gratuite pour diagnostic de structure et bâtiment.
 
@@ -33,3 +33,40 @@ Ces rappels servent de checklist métier et ne remplacent pas l'analyse régleme
 
 DWG / DXF
 Lecture locale bêta avec LibreDWG WebAssembly. Selon la version DWG, les polices SHX ou les objets propriétaires, l'affichage peut être incomplet.
+
+
+Nouveautés V3
+- Thème FOURNIX orange avec dégradés.
+- Forme assistée enrichie : cercle, ellipse, rectangle, carré, triangle, losange, pentagone, hexagone, octogone et reconnaissance automatique.
+- Choix forcé d'une forme quand la reconnaissance automatique n'est pas souhaitée.
+- Outil Sélection pour choisir une forme et modifier son échelle de 25 % à 300 %.
+- Suppression directe de l'objet sélectionné.
+- Outil Gomme visible et utilisable en glissant sur les annotations.
+- Suppression de l'assistant d'écriture manuscrite.
+- Texte avec taille réglable, gras et fond lisible.
+- Photos, vidéos, audios, fissures et fonctions de visite conservés.
+
+
+Nouveauté V4 — Préparation intervention
+- Nouvelle fiche technicien.
+- Génération automatique locale à partir de la pré-visite, du compte rendu et des constats.
+- Liste de matériel, EPI, consommables, accès et contraintes.
+- Détection par règles de besoins courants : sondages destructifs, Ferroscan / pachomètre, carottage, fissures, humidité, déformations, accès en hauteur, alimentation électrique, eau, bâtiment occupé, risques avant sondages.
+- Quantité, disponibilité, note et case « préparé » pour chaque élément.
+- Ajout manuel d'éléments.
+- Points critiques signalés.
+- Export PDF de la fiche technicien.
+- La fiche technicien est aussi ajoutée au ZIP du dossier de visite en PDF, CSV et JSON.
+- Aucun service IA payant n'est nécessaire pour cette génération.
+
+
+Nouveauté V5 — Compte rendu de visite en PDF
+- Bouton « Compte rendu PDF » directement dans l'onglet Compte rendu.
+- Le PDF est lisible sur Android, tablette et ordinateur.
+- Une copie du PDF est enregistrée dans le stockage local chiffré de l'application.
+- Le PDF contient les informations du projet, les personnes présentes, zones visitées,
+  conditions d'accès, sondages, constats, limites, actions, suite à donner et notes libres.
+- Les observations enregistrées sur les plans sont reprises dans le PDF.
+- L'export complet de la mission contient automatiquement « compte_rendu_visite.pdf ».
+- Les fichiers JSON restent présents pour la sauvegarde technique, mais il n'est plus nécessaire
+  de les ouvrir pour lire le compte rendu sur le téléphone.
