@@ -197,3 +197,56 @@ body{background:radial-gradient(circle at top right,#fff1e7 0,#fff8f3 34%,#f7f4f
   .report-top-actions{width:100%;margin-top:8px}
   .report-top-actions button{flex:1}
 }
+
+
+/* FOURNIX DIAG V6 — navigation arrière / avant */
+.topbar-nav{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-right:10px;
+}
+.topbar-brand{
+  flex:1;
+  min-width:0;
+}
+.nav-history-btn{
+  width:38px;
+  height:38px;
+  border-radius:11px;
+  border:1px solid rgba(255,255,255,.24);
+  background:rgba(255,255,255,.10);
+  color:#fff;
+  font-size:22px;
+  line-height:1;
+  display:grid;
+  place-items:center;
+  padding:0;
+  font-weight:800;
+}
+.nav-history-btn:not(:disabled):active{
+  transform:scale(.96);
+  background:rgba(255,255,255,.18);
+}
+.nav-history-btn:disabled{
+  opacity:.28;
+  cursor:default;
+}
+@media(max-width:650px){
+  .topbar{
+    gap:5px;
+  }
+  .topbar-nav{
+    gap:4px;
+    margin-right:4px;
+  }
+  .nav-history-btn{
+    width:34px;
+    height:34px;
+    border-radius:9px;
+    font-size:20px;
+  }
+  .topbar-brand .top-muted{
+    display:none;
+  }
+}

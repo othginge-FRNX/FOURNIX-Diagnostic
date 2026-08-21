@@ -1,5 +1,5 @@
 
-/* FOURNIX DIAG v1
+/* FOURNIX FieldDiag v1
    Local-first PWA. Project data is encrypted with AES-GCM.
 */
 (() => {
@@ -148,6 +148,97 @@
     if (!s) return '';
     try { return new Intl.DateTimeFormat('fr-FR').format(new Date(s + (s.length===10?'T12:00:00':''))); }
     catch { return s; }
+  }
+
+
+  // Navigation interne FOURNIX FieldDiag
+  let appHistory = [];
+  let appHistoryIndex = -1;
+  let historyRestoring = false;
+
+  function currentAppState(){
+    if(!$('viewer').classList.contains('hidden') && currentFile){
+      return {
+        screen:'viewer',
+        projectId:activeProject?.id||null,
+        fileId:currentFile.id,
+        page:currentPage,
+        tool:activeTool
+      };
+    }
+    if($('projectView').classList.contains('active') && activeProject){
+      const activeTab=document.querySelector('[data-project-tab].active')?.dataset.projectTab || 'plans';
+      return {
+        screen:'project',
+        projectId:activeProject.id,
+        tab:activeTab
+      };
+    }
+    return {screen:'home'};
+  }
+
+  function stateKey(s){
+    return JSON.stringify(s||{});
+  }
+
+  function updateHistoryButtons(){
+    const back=$('appBackBtn');
+    const forward=$('appForwardBtn');
+    if(back) back.disabled=appHistoryIndex<=0;
+    if(forward) forward.disabled=appHistoryIndex<0 || appHistoryIndex>=appHistory.length-1;
+  }
+
+  function pushAppHistory(state=null){
+    if(historyRestoring) return;
+    const s=state||currentAppState();
+    const key=stateKey(s);
+    if(appHistoryIndex>=0 && stateKey(appHistory[appHistoryIndex])===key){
+      updateHistoryButtons();
+      return;
+    }
+    appHistory=appHistory.slice(0,appHistoryIndex+1);
+    appHistory.push(s);
+    appHistoryIndex=appHistory.length-1;
+    updateHistoryButtons();
+  }
+
+  async function restoreAppState(state){
+    if(!state) return;
+    historyRestoring=true;
+    try{
+      if(state.screen==='home'){
+        if(!$('viewer').classList.contains('hidden')) closeViewer(false);
+        activeProject=null;
+        $('projectView').classList.remove('active');
+        $('homeView').classList.add('active');
+        await loadProjects();
+      } else if(state.screen==='project' && state.projectId){
+        if(!$('viewer').classList.contains('hidden')) closeViewer(false);
+        await openProject(state.projectId,false);
+        if(state.tab) setProjectTab(state.tab,false);
+      } else if(state.screen==='viewer' && state.projectId && state.fileId){
+        if(!activeProject || activeProject.id!==state.projectId){
+          await openProject(state.projectId,false);
+        }
+        await openViewer(state.fileId,state.page||1,false);
+        if(state.tool) setTool(state.tool);
+      }
+    } finally{
+      historyRestoring=false;
+      updateHistoryButtons();
+    }
+  }
+
+  async function appGoBack(){
+    if(appHistoryIndex<=0) return;
+    appHistoryIndex--;
+    await restoreAppState(appHistory[appHistoryIndex]);
+  }
+
+  async function appGoForward(){
+    if(appHistoryIndex>=appHistory.length-1) return;
+    appHistoryIndex++;
+    await restoreAppState(appHistory[appHistoryIndex]);
   }
 
   async function openDB() {
@@ -362,7 +453,7 @@
     }
   }
 
-  async function openProject(id) {
+  async function openProject(id, addHistory=true) {
     activeProject = await getSecureJSON(id);
     if (!activeProject) return;
     $('homeView').classList.remove('active');
@@ -379,15 +470,17 @@
     renderObservations();
     renderIntervention();
     renderChecklist();
-    setProjectTab('plans');
+    setProjectTab('plans',false);
     resetAutoLock();
+    if(addHistory) pushAppHistory({screen:'project',projectId:activeProject.id,tab:'plans'});
   }
 
-  function closeProject() {
+  function closeProject(addHistory=true) {
     activeProject = null;
     $('projectView').classList.remove('active');
     $('homeView').classList.add('active');
     loadProjects();
+    if(addHistory) pushAppHistory({screen:'home'});
   }
 
   function showProjectDialog(project=null) {
@@ -428,7 +521,7 @@
     if (p) showProjectDialog(p);
   }
 
-  function setProjectTab(name) {
+  function setProjectTab(name, addHistory=true) {
     document.querySelectorAll('[data-project-tab]').forEach(b=>b.classList.toggle('active',b.dataset.projectTab===name));
     document.querySelectorAll('.project-tab').forEach(s=>s.classList.remove('active'));
     $('projectTab' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
@@ -437,6 +530,7 @@
     if (name==='notes') fillReportFields();
     if (name==='intervention') renderIntervention();
     if (name==='checklist') renderChecklist();
+    if(addHistory && activeProject) pushAppHistory({screen:'project',projectId:activeProject.id,tab:name});
   }
 
   function conditionVisible(q){
@@ -595,7 +689,7 @@
     return activeProject.annotations[k];
   }
 
-  async function openViewer(fileId, page=1) {
+  async function openViewer(fileId, page=1, addHistory=true) {
     currentFile = activeProject.files.find(f=>f.id===fileId);
     if (!currentFile) return;
     currentFileBuffer = await getSecureBinary(fileId);
@@ -625,6 +719,7 @@
       updatePageInfo();
       renderAnnotations();
       fitToScreen();
+      if(addHistory) pushAppHistory({screen:'viewer',projectId:activeProject?.id||null,fileId:currentFile.id,page:currentPage,tool:activeTool});
     } catch (err) {
       console.error(err);
       showToast('Impossible d’ouvrir ce document',3500);
@@ -633,7 +728,7 @@
     }
   }
 
-  function closeViewer() {
+  function closeViewer(addHistory=true) {
     $('viewer').classList.add('hidden');
     clearBaseLayers();
     currentFile = null;
@@ -642,6 +737,10 @@
     currentCadSvg = null;
     selectedAnnId=null;selectedBaseAnn=null;$('selectionTools').classList.add('hidden');
     renderObservations();
+    if(addHistory && activeProject){
+      const activeTab=document.querySelector('[data-project-tab].active')?.dataset.projectTab||'plans';
+      pushAppHistory({screen:'project',projectId:activeProject.id,tab:activeTab});
+    }
   }
 
   function clearBaseLayers() {
@@ -783,6 +882,7 @@
     updatePageInfo();
     fitToScreen();
     $('viewerLoading').classList.add('hidden');
+    pushAppHistory({screen:'viewer',projectId:activeProject?.id||null,fileId:currentFile?.id||null,page:currentPage,tool:activeTool});
   }
 
   function screenToPlan(clientX,clientY) {
@@ -1507,7 +1607,7 @@
     };
 
     doc.setTextColor(194,65,12);
-    addLine('FOURNIX DIAG — COMPTE RENDU DE VISITE',16,true);
+    addLine('FOURNIX FieldDiag — COMPTE RENDU DE VISITE',16,true);
     doc.setTextColor(25,25,25);
     addLine(activeProject.name||'Projet',13,true);
 
@@ -1553,7 +1653,7 @@
     }
 
     const pages=doc.internal.getNumberOfPages();
-    const footer=`Généré avec FOURNIX DIAG — ${new Date().toLocaleDateString('fr-FR')}`;
+    const footer=`Généré avec FOURNIX FieldDiag — ${new Date().toLocaleDateString('fr-FR')}`;
     for(let n=1;n<=pages;n++){
       doc.setPage(n);
       doc.setFont('helvetica','normal');
@@ -1611,7 +1711,7 @@
       }
     };
     doc.setTextColor(194,65,12);
-    addLine('FOURNIX DIAG — FICHE TECHNICIEN',16,true);
+    addLine('FOURNIX FieldDiag — FICHE TECHNICIEN',16,true);
     doc.setTextColor(20,20,20);
     addLine(activeProject.name||'Projet',13,true);
     addLine([activeProject.client,activeProject.site].filter(Boolean).join(' — '),9);
@@ -1863,6 +1963,7 @@
     await requestPersistentStorage();
     await loadProjects();
     resetAutoLock();
+    if(appHistory.length===0) pushAppHistory({screen:'home'});
   }
 
   // Events
@@ -1878,6 +1979,8 @@
   };
   $('unlockPin').addEventListener('keydown',e=>{if(e.key==='Enter')$('unlockBtn').click()});
   $('lockBtn').onclick=lockApp;
+  $('appBackBtn').onclick=appGoBack;
+  $('appForwardBtn').onclick=appGoForward;
   $('newProjectBtn').onclick=()=>showProjectDialog();
   $('backHomeBtn').onclick=closeProject;
   $('editProjectBtn').onclick=()=>showProjectDialog(activeProject);

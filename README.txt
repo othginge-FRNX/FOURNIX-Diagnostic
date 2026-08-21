@@ -1,4 +1,4 @@
-FOURNIX DIAG v3
+FOURNIX FieldDiag v3
 
 Application terrain gratuite pour diagnostic de structure et bâtiment.
 
@@ -70,3 +70,25 @@ Nouveauté V5 — Compte rendu de visite en PDF
 - L'export complet de la mission contient automatiquement « compte_rendu_visite.pdf ».
 - Les fichiers JSON restent présents pour la sauvegarde technique, mais il n'est plus nécessaire
   de les ouvrir pour lire le compte rendu sur le téléphone.
+
+
+Nouveauté V6 — Navigation
+- Deux boutons permanents en haut de l'application : ← Retour et → Avancer.
+- Le bouton Retour ramène à l'écran précédent dans FOURNIX FieldDiag.
+- Le bouton Avancer permet de revenir à l'écran quitté après un retour.
+- La navigation mémorise l'accueil, les projets, les onglets, les plans ouverts et les pages PDF.
+
+
+Nouveauté V7 — identité visuelle
+- Icône de l'application mise à jour en orange.
+- Nouveau style visuel de l'icône plus aligné avec FOURNIX FieldDiag.
+- Une planche de propositions de logo est fournie séparément.
+
+
+Identité officielle V8
+- Nom : FOURNIX FieldDiag
+- Signature : Assistant terrain pour l’ingénieur structure
+- Nom court sur téléphone : FieldDiag
+- Monogramme : FD
+- Palette : orange
+- Les identifiants de stockage local restent identiques pour préserver les projets déjà créés.

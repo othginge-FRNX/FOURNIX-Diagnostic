@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
   <meta name="theme-color" content="#ea580c">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>FOURNIX DIAG</title>
+  <title>FOURNIX FieldDiag</title>
   <link rel="manifest" href="./manifest.json">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <link rel="stylesheet" href="./styles.css">
@@ -17,7 +17,7 @@
   <div id="lockScreen" class="screen center-screen">
     <div class="auth-card">
       <div class="brand-mark">F</div>
-      <h1>FOURNIX DIAG</h1>
+      <h1>FOURNIX FieldDiag</h1>
       <p id="authText">Carnet de visite structure et bâtiment.</p>
 
       <div id="setupBox" class="hidden">
@@ -41,8 +41,12 @@
 
   <div id="app" class="hidden">
     <header class="topbar">
-      <div>
-        <div class="brand-title">FOURNIX DIAG</div>
+      <div class="topbar-nav">
+        <button id="appBackBtn" class="nav-history-btn" title="Retour" disabled>←</button>
+        <button id="appForwardBtn" class="nav-history-btn" title="Avancer" disabled>→</button>
+      </div>
+      <div class="topbar-brand">
+        <div class="brand-title">FOURNIX FieldDiag</div>
         <div id="headerSubtitle" class="small top-muted">Structure · pathologies · relevés terrain</div>
       </div>
       <button id="lockBtn" class="ghost small-btn">Verrouiller</button>

@@ -1,12 +1,12 @@
 {
-  "name": "FOURNIX DIAG",
-  "short_name": "FOURNIX DIAG",
+  "name": "FOURNIX FieldDiag",
+  "short_name": "FieldDiag",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#fff8f3",
   "theme_color": "#ea580c",
-  "description": "FOURNIX DIAG — visite, cartographie de désordres, compte rendu et préparation d'intervention pour diagnostic structure.",
+  "description": "FOURNIX FieldDiag — Assistant terrain pour l’ingénieur structure.",
   "icons": [
     {
       "src": "./icon-192.png",
