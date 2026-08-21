@@ -133,3 +133,13 @@ V11 — correctif ouverture et annotation
 - PDF.js dispose de plusieurs sources de secours.
 - LibreDWG dispose de plusieurs sources de secours.
 - L'ouverture des fichiers utilise aussi une délégation d'événement de secours.
+
+
+V12 — correction définitive du bouton « Ouvrir et annoter »
+- Cause identifiée : app.js appelait l'élément #draw-style alors que le HTML ne possédait qu'une classe .draw-style.
+- Cette erreur interrompait openViewer avant l'ouverture du lecteur et avant l'affichage du message d'erreur.
+- Ajout de l'identifiant #draw-style au bon élément.
+- Le pré-affichage du lecteur est désormais protégé par le même try/catch que l'ouverture du fichier.
+- Vérification automatique de toutes les références $('id') de app.js contre les IDs réellement présents dans index.html.
+- Ajout d'un gestionnaire global d'erreurs et de promesses rejetées pour éviter les échecs silencieux.
+- Badge V12 visible dans l'application.

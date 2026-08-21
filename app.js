@@ -847,18 +847,18 @@
     currentCadSvg=null;
     undoStack=[];
 
-    $('viewerFileName').textContent=currentFile.name;
-    $('viewerTools').classList.remove('cad-tools-hidden');
-    $('draw-style').classList.remove('cad-tools-hidden');
-    $('exportPageBtn').disabled=false;
-    $('exportPageBtn').title='';
-    $('viewer').classList.remove('hidden');
-    $('viewerLoading').classList.remove('hidden');
-    $('viewerLoading').textContent='Lecture du fichier…';
-    hideFileOpenError();
-    resetView();
-
     try{
+      $('viewerFileName').textContent=currentFile.name;
+      $('viewerTools').classList.remove('cad-tools-hidden');
+      $('draw-style').classList.remove('cad-tools-hidden');
+      $('exportPageBtn').disabled=false;
+      $('exportPageBtn').title='';
+      $('viewer').classList.remove('hidden');
+      $('viewerLoading').classList.remove('hidden');
+      $('viewerLoading').textContent='Lecture du fichier…';
+      hideFileOpenError();
+      resetView();
+
       currentFileBuffer=await readStoredFileBytes(fileId);
       if(!currentFileBuffer?.byteLength) throw new Error('FILE_EMPTY');
 
@@ -2371,6 +2371,21 @@
     resetAutoLock();
     if(appHistory.length===0) pushAppHistory({screen:'home'});
   }
+
+
+  window.addEventListener('error',event=>{
+    console.error('FieldDiag runtime error',event.error||event.message);
+    try{
+      showToast('Erreur interne détectée. Recharge FieldDiag si le bouton ne répond plus.',5000);
+    }catch{}
+  });
+
+  window.addEventListener('unhandledrejection',event=>{
+    console.error('FieldDiag unhandled promise rejection',event.reason);
+    try{
+      showToast('Une opération a échoué. Réessaie ou recharge FieldDiag.',5000);
+    }catch{}
+  });
 
   // Events
   $('setupBtn').onclick=async()=>{

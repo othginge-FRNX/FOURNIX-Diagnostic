@@ -1,5 +1,5 @@
 
-const CACHE='fournix-fielddiag-v11-20260821';
+const CACHE='fournix-fielddiag-v12-20260821';
 const LOCAL=['./','./index.html','./styles.css','./app.js','./manifest.json','./icon-192.png','./icon-512.png'];
 const CDN=[
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
