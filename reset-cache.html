@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FieldDiag — actualisation</title>
+<style>
+body{font-family:system-ui,sans-serif;background:#fff7ed;color:#431407;margin:0;min-height:100vh;display:grid;place-items:center;padding:20px}
+.card{max-width:460px;background:white;border:1px solid #fed7aa;border-radius:18px;padding:22px}
+h1{font-size:22px;margin:0 0 10px;color:#c2410c}
+p{line-height:1.45}
+button{width:100%;border:0;border-radius:11px;background:#ea580c;color:white;padding:12px;font-weight:800;font-size:16px}
+#status{font-size:13px;margin-top:12px;color:#7c2d12}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>FOURNIX FieldDiag</h1>
+<p>Ce bouton supprime uniquement les anciens caches techniques de l'application et désactive l'ancien service worker.</p>
+<p>Les projets stockés dans FieldDiag ne sont pas supprimés.</p>
+<button id="resetBtn">Actualiser l'application</button>
+<div id="status"></div>
+</div>
+<script>
+document.getElementById('resetBtn').onclick=async()=>{
+  const s=document.getElementById('status');
+  s.textContent='Nettoyage du cache…';
+  try{
+    if('serviceWorker' in navigator){
+      const regs=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r=>r.unregister()));
+    }
+    if('caches' in window){
+      const keys=await caches.keys();
+      await Promise.all(keys.map(k=>caches.delete(k)));
+    }
+    s.textContent='Terminé. Ouverture de FieldDiag…';
+    setTimeout(()=>location.href='./?v=10',700);
+  }catch(e){
+    s.textContent='Actualisation partielle. Ferme Firefox puis rouvre FieldDiag.';
+  }
+};
+</script>
+</body>
+</html>

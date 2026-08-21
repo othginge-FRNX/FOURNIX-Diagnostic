@@ -734,8 +734,15 @@
       }
       if(addHistory) pushAppHistory({screen:'viewer',projectId:activeProject?.id||null,fileId:currentFile.id,page:currentPage,tool:activeTool});
     } catch (err) {
-      console.error(err);
-      showToast('Impossible d’ouvrir ce document',3500);
+      console.error('Ouverture document échouée',err);
+      try{
+        $('planContent').style.display='';
+        $('viewerTools').classList.remove('cad-tools-hidden');
+        $('draw-style').classList.remove('cad-tools-hidden');
+        if($('cadProBase')) $('cadProBase').classList.add('hidden');
+        if($('cadModeBar')) $('cadModeBar').classList.add('hidden');
+      }catch{}
+      showToast('Impossible d’ouvrir ce document. Ferme le lecteur puis réessaie.',4200);
     } finally {
       $('viewerLoading').classList.add('hidden');
     }
@@ -769,6 +776,9 @@
 
   async function renderPdfPage() {
     clearBaseLayers();
+    $('planContent').style.display='';
+    $('viewerTools').classList.remove('cad-tools-hidden');
+    $('draw-style').classList.remove('cad-tools-hidden');
     const page = await currentPdf.getPage(currentPage);
     const vp1 = page.getViewport({scale:1});
     baseW = vp1.width;
@@ -790,6 +800,9 @@
 
   async function renderImage() {
     clearBaseLayers();
+    $('planContent').style.display='';
+    $('viewerTools').classList.remove('cad-tools-hidden');
+    $('draw-style').classList.remove('cad-tools-hidden');
     const blob = new Blob([currentFileBuffer],{type:currentFile.mime||'image/jpeg'});
     const url = URL.createObjectURL(blob);
     const img = new Image();
@@ -827,8 +840,8 @@
   }
 
   async function renderCad() {
-    cadDisplayMode='pro';
-    return renderCadPro();
+    cadDisplayMode='legacy';
+    return renderCadLegacy();
   }
 
   async function renderCadPro(){
@@ -840,7 +853,7 @@
     $('planContent').style.display='none';
     $('cadProBase').classList.remove('hidden');
     $('cadModeBar').classList.remove('hidden');
-    $('cadAnnotationsBtn').textContent='Annoter';
+    $('cadAnnotationsBtn').textContent='Retour annotations';
     $('cadStatus').textContent=currentFile.ext==='dwg'
       ? dwgVersionLabel(currentFileBuffer)
       : 'DXF';
@@ -851,8 +864,11 @@
       cadProViewer=new CadViewer({
         container:$('cadProBase'),
         renderer:'auto',
-        wasmPath:CAD_VIEWER_CDN + 'dist/wasm/',
-        useWorker:false,
+        wasmPath:CAD_VIEWER_CDN + 'wasm/',
+        useWorker:true,
+        workerUrl:CAD_VIEWER_CDN + 'wasm/dwg-worker.js',
+        workerTimeoutMs:120000,
+        dwfWasmUrl:CAD_VIEWER_CDN + 'wasm/dwfv-render.wasm',
         autoFit:true,
         canvasOptions:{
           background:cadThemeDark?'#05070d':'#f7f8fb',
@@ -900,7 +916,7 @@
       $('fitBtn').textContent='Ajuster';
     }catch(err){
       console.error('CAD pro viewer failed',err);
-      showToast('Mode CAD avancé indisponible. Ouverture du mode annotation…',3200);
+      showToast('Espace objet indisponible. Retour au mode annotation.',3500);
       await renderCadLegacy();
     }
   }
@@ -914,7 +930,7 @@
     $('draw-style').classList.remove('cad-tools-hidden');
     $('planContent').style.display='';
     $('cadModeBar').classList.remove('hidden');
-    $('cadAnnotationsBtn').textContent='Espace objet';
+    $('cadAnnotationsBtn').textContent='Espace objet bêta';
     $('cadStatus').textContent='Mode annotation · conversion SVG';
 
     const mod = await import('https://cdn.jsdelivr.net/npm/@mlightcad/libredwg-web/dist/libredwg-web.js');
@@ -2270,6 +2286,8 @@
   (async()=>{
     await openDB();
     await initAuthUI();
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('./sw.js').then(reg=>reg.update().catch(()=>{})).catch(()=>{});
+    }
   })();
 })();

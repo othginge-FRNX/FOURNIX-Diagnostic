@@ -103,3 +103,20 @@ V9 — améliorations terrain et DWG
 - Un bouton « Annoter » permet de revenir au convertisseur SVG historique pour poser les annotations sur DWG.
 - Le convertisseur SVG reste un mode de secours, car il ne prend pas en charge tous les objets AutoCAD.
 - Barre de pages PDF revue pour téléphone : Préc., Suiv. et PDF annoté tiennent sur la largeur de l'écran.
+
+
+V10 — correctif ouverture de fichiers
+- Correction du cache PWA pour éviter qu'un ancien app.js soit mélangé avec un nouvel index.html.
+- PDF et images repassent systématiquement par le lecteur stable.
+- DWG/DXF s'ouvrent par défaut avec le lecteur d'annotation historique.
+- Le mode « Espace objet bêta » reste disponible séparément.
+- Correction des chemins WebAssembly/worker du lecteur CAD avancé.
+- Les requêtes .js/.wasm ne reçoivent plus index.html comme réponse de secours.
+- Mise à jour du service worker demandée automatiquement au lancement.
+
+
+Si une ancienne version reste bloquée après la mise à jour :
+- Ouvrir l'adresse du site suivie de /reset-cache.html
+- Appuyer sur « Actualiser l'application »
+- Cette opération efface uniquement les caches techniques et service workers.
+- Elle ne supprime pas les projets stockés dans IndexedDB.

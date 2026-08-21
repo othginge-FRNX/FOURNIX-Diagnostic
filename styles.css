@@ -379,3 +379,11 @@ body{background:radial-gradient(circle at top right,#fff1e7 0,#fff8f3 34%,#f7f4f
   }
 }
 
+
+
+/* FOURNIX FieldDiag V10 */
+#cadAnnotationsBtn{
+  background:linear-gradient(180deg,#fb923c,#ea580c);
+  border-color:#fb923c;
+  font-weight:800;
+}
