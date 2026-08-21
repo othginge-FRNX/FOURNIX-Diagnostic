@@ -5,19 +5,20 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
   <meta name="theme-color" content="#111827">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>FOURNIX Diagnostic</title>
+  <title>FOURNIX DIAG</title>
   <link rel="manifest" href="./manifest.json">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <link rel="stylesheet" href="./styles.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
   <div id="lockScreen" class="screen center-screen">
     <div class="auth-card">
       <div class="brand-mark">F</div>
-      <h1>FOURNIX Diagnostic</h1>
+      <h1>FOURNIX DIAG</h1>
       <p id="authText">Carnet de visite structure et bâtiment.</p>
 
       <div id="setupBox" class="hidden">
@@ -42,8 +43,8 @@
   <div id="app" class="hidden">
     <header class="topbar">
       <div>
-        <div class="brand-title">FOURNIX Diagnostic</div>
-        <div id="headerSubtitle" class="small top-muted">Visites et cartographie de désordres</div>
+        <div class="brand-title">FOURNIX DIAG</div>
+        <div id="headerSubtitle" class="small top-muted">Structure · pathologies · relevés terrain</div>
       </div>
       <button id="lockBtn" class="ghost small-btn">Verrouiller</button>
     </header>
@@ -62,7 +63,7 @@
       <section class="card">
         <h3>Outils terrain</h3>
         <div class="tool-summary">
-          <span>PDF</span><span>DWG / DXF bêta</span><span>Photos localisées</span><span>Annotations vectorielles</span><span>Mesures calibrées</span><span>Export visite</span>
+          <span>PDF / DWG</span><span>Fissures tracées</span><span>Photos / vidéo / audio</span><span>Formes assistées</span><span>Questions client</span><span>Compte rendu</span><span>Chiffrement local</span>
         </div>
       </section>
     </main>
@@ -79,8 +80,9 @@
 
       <nav class="tabs">
         <button data-project-tab="plans" class="active">Plans</button>
-        <button data-project-tab="observations">Observations</button>
-        <button data-project-tab="notes">Notes</button>
+        <button data-project-tab="visite">Pré-visite</button>
+        <button data-project-tab="observations">Constats</button>
+        <button data-project-tab="notes">Compte rendu</button>
         <button data-project-tab="checklist">Checklist</button>
         <button data-project-tab="export">Export</button>
       </nav>
@@ -101,6 +103,36 @@
         </div>
       </section>
 
+      <section id="projectTabVisite" class="project-tab">
+        <div class="card visit-head-card">
+          <div class="section-line">
+            <div>
+              <h3>Pré-visite et questions client</h3>
+              <p class="small muted">Prépare le diagnostic, l’expertise ou la visite avec le client.</p>
+            </div>
+            <span id="visitProgress" class="progress-pill">0 %</span>
+          </div>
+          <div class="form-grid">
+            <div>
+              <label>Type de visite</label>
+              <select id="visitType">
+                <option value="previsite">Pré-visite / chiffrage diagnostic</option>
+                <option value="diagnostic">Intervention de diagnostic</option>
+                <option value="expertise">Expertise / réunion avec le client</option>
+                <option value="suivi">Visite de suivi</option>
+                <option value="autre">Autre</option>
+              </select>
+            </div>
+            <div>
+              <label>Année de construction estimée</label>
+              <input id="buildingYear" type="number" min="1700" max="2100" inputmode="numeric" placeholder="Ex. 1972">
+            </div>
+          </div>
+          <div id="regulatoryHints" class="regulatory-hints"></div>
+        </div>
+        <div id="visitQuestionsBox"></div>
+      </section>
+
       <section id="projectTabObservations" class="project-tab">
         <div class="card">
           <div class="section-line">
@@ -114,6 +146,9 @@
               <option value="all">Toutes</option>
               <option value="pathology">Pathologies</option>
               <option value="photo">Photos</option>
+              <option value="video">Vidéos</option>
+              <option value="audio">Audios</option>
+              <option value="crack">Fissures tracées</option>
             </select>
           </div>
           <div id="observationList"></div>
@@ -122,8 +157,25 @@
 
       <section id="projectTabNotes" class="project-tab">
         <div class="card">
-          <h3>Notes de visite</h3>
-          <textarea id="visitNotes" class="notes-area" placeholder="Contexte, historique, échange avec le client, hypothèses, éléments à vérifier au bureau..."></textarea>
+          <div class="section-line">
+            <div>
+              <h3>Compte rendu de visite</h3>
+              <p class="small muted">Une trame rapide pour ne rien oublier en quittant le site.</p>
+            </div>
+            <button id="generateSummaryBtn" class="secondary">Pré-remplir</button>
+          </div>
+          <div class="report-grid">
+            <div><label>Personnes présentes</label><textarea id="reportPeople" class="mini-area" placeholder="Client, exploitant, entreprise, ingénieur..."></textarea></div>
+            <div><label>Zones visitées</label><textarea id="reportZones" class="mini-area" placeholder="Niveaux, locaux, façades, toiture..."></textarea></div>
+            <div><label>Conditions d’accès / contraintes</label><textarea id="reportAccess" class="mini-area" placeholder="Occupation, accès, hauteur, horaires..."></textarea></div>
+            <div><label>Sondages / mesures réalisés</label><textarea id="reportTests" class="mini-area" placeholder="Ferroscan, ouvertures, carottages, mesures..."></textarea></div>
+            <div><label>Constats principaux</label><textarea id="reportFindings" class="mini-area" placeholder="Synthèse des désordres constatés..."></textarea></div>
+            <div><label>Limites de la visite</label><textarea id="reportLimits" class="mini-area" placeholder="Zones non accessibles, documents manquants..."></textarea></div>
+            <div><label>Décisions / actions</label><textarea id="reportActions" class="mini-area" placeholder="Documents à transmettre, sondages complémentaires..."></textarea></div>
+            <div><label>Suite à donner</label><textarea id="reportNext" class="mini-area" placeholder="Analyse bureau, devis, rapport, nouvelle visite..."></textarea></div>
+          </div>
+          <label>Notes libres</label>
+          <textarea id="visitNotes" class="notes-area" placeholder="Contexte, historique, échanges, hypothèses, détails complémentaires..."></textarea>
           <div class="section-line">
             <p class="small muted">Enregistrement automatique.</p>
             <button id="saveNotesBtn" class="secondary">Enregistrer</button>
@@ -191,17 +243,24 @@
     <div class="draw-style">
       <label>Couleur <input id="drawColor" type="color" value="#d11a2a"></label>
       <label>Trait <input id="drawWidth" type="range" min="1" max="10" value="3"></label>
+      <label class="smart-toggle"><input id="snapAssist" type="checkbox" checked> Assistance dessin</label>
     </div>
 
     <div id="viewerTools" class="viewer-tools">
       <button data-tool="pan" class="active">Main</button>
       <button data-tool="freehand">Crayon</button>
+      <button data-tool="assist">Forme assistée</button>
+      <button data-tool="handwrite">Écriture</button>
+      <button id="handwritingToTextBtn">Écriture → texte</button>
       <button data-tool="line">Ligne</button>
       <button data-tool="arrow">Flèche</button>
       <button data-tool="rect">Zone</button>
       <button data-tool="text">Texte</button>
       <button data-tool="pathology">Pathologie</button>
+      <button data-tool="crack">Tracer fissure</button>
       <button data-tool="photo">Photo</button>
+      <button data-tool="video">Vidéo</button>
+      <button data-tool="audio">Audio</button>
       <button data-tool="calibrate">Calibrer</button>
       <button data-tool="measure">Mesurer</button>
       <button data-tool="erase">Effacer</button>
@@ -221,6 +280,14 @@
       <input id="projectSite" placeholder="Adresse ou nom du site">
       <label>Date de visite</label>
       <input id="projectDate" type="date">
+      <label>Type de mission</label>
+      <select id="projectMission">
+        <option value="previsite">Pré-visite / chiffrage</option>
+        <option value="diagnostic">Diagnostic structure</option>
+        <option value="expertise">Expertise / réunion client</option>
+        <option value="suivi">Suivi / contrôle</option>
+        <option value="autre">Autre</option>
+      </select>
       <label>Interlocuteur</label>
       <input id="projectContact" placeholder="Nom / fonction">
       <div class="dialog-actions">
@@ -253,8 +320,12 @@
         <option value="important">Important</option>
         <option value="critical">Critique</option>
       </select>
+      <div class="form-grid">
+        <div><label>Ouverture / dimension (mm)</label><input id="obsOpening" type="number" step="0.1" inputmode="decimal" placeholder="Ex. 0,5"></div>
+        <div><label>Localisation précise</label><input id="obsLocation" placeholder="Ex. poutre P3, sous-face"></div>
+      </div>
       <label>Description</label>
-      <textarea id="obsDescription" placeholder="Ex. fissure verticale env. 0,5 mm, continue sur 1,20 m..."></textarea>
+      <textarea id="obsDescription" placeholder="Ex. fissure verticale, continue sur 1,20 m, sèche..."></textarea>
       <label>Photo liée</label>
       <input id="obsPhotoInput" type="file" accept="image/*" capture="environment">
       <div class="dialog-actions">
@@ -276,6 +347,50 @@
         <button id="savePhotoBtn" value="default" class="primary">Placer la photo</button>
       </div>
     </form>
+  </dialog>
+
+  <dialog id="videoDialog">
+    <form method="dialog" id="videoForm">
+      <h3>Vidéo localisée</h3>
+      <label>Filmer ou choisir une vidéo</label>
+      <input id="videoInput" type="file" accept="video/*" capture="environment" required>
+      <label>Commentaire</label>
+      <textarea id="videoDescription" placeholder="Ex. mouvement visible au droit du joint..."></textarea>
+      <div class="dialog-actions">
+        <button value="cancel" class="secondary">Annuler</button>
+        <button id="saveVideoBtn" value="default" class="primary">Placer la vidéo</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="audioDialog">
+    <form method="dialog" id="audioForm">
+      <h3>Note audio localisée</h3>
+      <p class="small muted">L’audio reste chiffré sur l’appareil. La transcription locale utilise un modèle gratuit téléchargé sur le téléphone lors du premier usage.</p>
+      <div class="audio-controls">
+        <button type="button" id="startAudioBtn" class="primary">Démarrer</button>
+        <button type="button" id="stopAudioBtn" class="secondary" disabled>Arrêter</button>
+        <span id="audioTimer" class="recording-time">00:00</span>
+      </div>
+      <audio id="audioPreview" controls class="hidden"></audio>
+      <button type="button" id="transcribeAudioBtn" class="secondary full" disabled>Transcrire localement</button>
+      <label>Transcription / commentaire</label>
+      <textarea id="audioTranscript" placeholder="Texte reconnu ou commentaire manuel..."></textarea>
+      <div id="audioTranscriptionStatus" class="small muted"></div>
+      <div class="dialog-actions">
+        <button value="cancel" class="secondary">Annuler</button>
+        <button id="saveAudioBtn" value="default" class="primary">Placer l’audio</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="mediaViewerDialog" class="photo-dialog">
+    <div class="photo-view-wrap">
+      <video id="mediaViewerVideo" controls class="hidden"></video>
+      <audio id="mediaViewerAudio" controls class="hidden"></audio>
+      <p id="mediaViewerCaption"></p>
+      <button id="closeMediaViewerBtn" class="primary">Fermer</button>
+    </div>
   </dialog>
 
   <dialog id="photoViewerDialog" class="photo-dialog">

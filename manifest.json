@@ -1,12 +1,12 @@
 {
-  "name": "FOURNIX Diagnostic",
-  "short_name": "FOURNIX Diag",
+  "name": "FOURNIX DIAG",
+  "short_name": "FOURNIX DIAG",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#111827",
-  "description": "Carnet de visite et cartographie de désordres pour diagnostic de structure et bâtiment.",
+  "description": "Outil terrain pour diagnostic structure, cartographie de désordres, annotations de plans et relevés de visite.",
   "icons": [
     {
       "src": "./icon-192.png",

@@ -1,43 +1,35 @@
-FOURNIX Diagnostic v1
+FOURNIX DIAG v2
 
-Application PWA locale pour visites de diagnostic de structure et bâtiment.
+Application terrain gratuite pour diagnostic de structure et bâtiment.
 
-Fonctions principales
-- Projets de visite.
-- Import PDF, images, DWG et DXF.
-- Annotations vectorielles : crayon, ligne, flèche, rectangle, texte.
-- Repères de pathologies.
-- Photos prises sur site ou choisies dans la galerie, liées à un point du plan.
-- Calibration et mesures.
-- Notes de visite.
-- Checklist diagnostic.
-- Export d'un dossier ZIP de visite.
-- Export de la page courante en PDF annoté.
-- Sauvegarde de projet chiffrée avec mot de passe.
-- Code PIN et chiffrement AES-GCM du stockage local.
-- Verrouillage automatique.
-- Installation sur Android / tablette comme application web.
+Nouveautés v2
+- Pré-visite : questionnaire client avec rappels amiante / plomb selon l'année du bâtiment.
+- Types de mission : pré-visite, diagnostic, expertise, suivi.
+- Compte rendu de visite structuré et pré-remplissage automatique local.
+- Symboles différents pour chaque pathologie.
+- Outil Tracer fissure pour dessiner la trajectoire exacte d'une fissure.
+- Photo, vidéo et note audio attachées à un point du plan.
+- Transcription audio locale gratuite avec Whisper Tiny, téléchargé au premier usage.
+- Assistance dessin : cercle/ellipse, rectangle et triangle reconnus à partir d'un croquis.
+- Écriture manuscrite vers texte avec OCR local Tesseract, fonction bêta.
+- Zoom jusqu'à 20x. Les annotations restent vectorielles. Le rendu PDF est plafonné en pixels pour éviter de bloquer le téléphone.
+- Compression des photos avant stockage.
+- Export ZIP avec plans, médias, questionnaire, compte rendu, observations CSV et notes.
+- Stockage chiffré AES-GCM avec PIN, verrouillage automatique et sauvegarde chiffrée.
 
-Installation sur GitHub Pages
-1. Créer un dépôt GitHub public, par exemple fournix-diagnostic.
-2. Décompresser ce ZIP.
-3. Importer index.html, styles.css, app.js, manifest.json, sw.js et les deux icônes à la racine du dépôt.
-4. Settings > Pages.
-5. Source : Deploy from a branch.
-6. Branch : main.
-7. Dossier : /(root).
-8. Save.
-9. Ouvrir l'adresse GitHub Pages sur le téléphone.
-10. Android : navigateur > menu > Installer / Ajouter à l'écran d'accueil.
+Coût
+Aucune API payante, aucun abonnement technique requis pour cette version. GitHub Pages suffit pour l'hébergement.
 
-Sécurité
-Les fichiers de projet, photos et données métier sont chiffrés dans IndexedDB avec une clé dérivée du PIN.
-Les documents ne sont pas envoyés à un serveur applicatif.
-Les bibliothèques JavaScript nécessaires sont chargées depuis des CDN publics lors du premier usage, puis mises en cache.
+Installation
+1. Décompresser le ZIP.
+2. Sur le dépôt GitHub FOURNIX-Diagnostic, remplacer index.html, styles.css, app.js, manifest.json, sw.js, README.txt et les icônes.
+3. GitHub Pages doit rester sur main / (root).
+4. Attendre le redéploiement puis actualiser l'application sur le téléphone.
+
+Rappels intégrés
+- Amiante : la pré-visite attire l'attention pour les bâtiments antérieurs à 1997 et demande DTA / repérage avant sondages.
+- Plomb : la pré-visite attire l'attention pour les bâtiments antérieurs à 1949.
+Ces rappels servent de checklist métier et ne remplacent pas l'analyse réglementaire de la mission.
 
 DWG / DXF
-Le lecteur CAO est une fonctionnalité bêta reposant sur un parseur WebAssembly chargé dans le navigateur.
-La prise en charge peut varier selon la version du DWG, les polices SHX, les objets propriétaires et la complexité du dessin.
-
-Conseil d'usage
-Créer régulièrement une sauvegarde chiffrée du projet depuis l'onglet Export.
+Lecture locale bêta avec LibreDWG WebAssembly. Selon la version DWG, les polices SHX ou les objets propriétaires, l'affichage peut être incomplet.

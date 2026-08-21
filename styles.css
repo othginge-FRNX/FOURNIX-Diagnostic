@@ -1,11 +1,11 @@
 
 :root{
-  --bg:#eef1f4;
+  --bg:#eef2f5;
   --card:#ffffff;
   --text:#111827;
   --muted:#6b7280;
   --line:#dfe4ea;
-  --dark:#111827;
+  --dark:#0a1120;
   --danger:#b91c1c;
   --ok:#047857;
   --blue:#1d4ed8;
@@ -28,14 +28,14 @@ label{display:block;font-size:12px;color:var(--muted);margin:12px 0 5px}
 input,select,textarea{width:100%;padding:11px 12px;border:1px solid #cfd5dd;border-radius:11px;background:#fff;color:#111827}
 textarea{resize:vertical}
 .primary,.secondary,.ghost{border-radius:11px;padding:10px 14px;font-weight:700}
-.primary{background:#111827;color:white;border:1px solid #111827}
+.primary{background:linear-gradient(135deg,#0b1729,#14243d);color:white;border:1px solid #0b1729;box-shadow:0 6px 16px rgba(8,19,35,.14)}
 .secondary{background:white;color:#111827;border:1px solid #cfd5dd}
 .ghost{background:transparent;color:#111827;border:1px solid #cfd5dd}
 .full{width:100%;margin-top:12px}
 .small{font-size:12px}
 .muted{color:var(--muted)}
 .status{font-size:12px;min-height:18px}
-.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#111827;color:white;border-bottom:1px solid #2b3444}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(110deg,#07101d,#0f2038 60%,#16304e);color:white;border-bottom:1px solid #2b3444;box-shadow:0 8px 22px rgba(5,14,28,.18)}
 .brand-title{font-weight:850}
 .top-muted{color:#bbc4d2;margin-top:2px}
 .topbar .ghost{color:#fff;border-color:#4b5563}
@@ -122,3 +122,12 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
   .viewer-file{order:1;flex-basis:55%}
   .viewer-zoom{order:2}
 }
+
+/* FOURNIX DIAG v2 */
+.brand-title{letter-spacing:.4px}.brand-title::after{content:'  FIELD';font-size:9px;color:#ffb84a;border:1px solid rgba(255,184,74,.45);border-radius:99px;padding:3px 6px;margin-left:7px;vertical-align:2px}
+.form-grid,.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mini-area{min-height:95px}.report-grid>div label{margin-top:4px}
+.visit-head-card{border-top:3px solid #ffb84a}.progress-pill{background:#0f2038;color:#fff;border-radius:99px;padding:6px 9px;font-size:11px;font-weight:800}.regulatory-hints{display:grid;gap:7px;margin-top:10px}.reg-hint{border-left:4px solid #ffb84a;background:#fff7e8;padding:9px 10px;border-radius:8px;font-size:12px}.reg-hint.amiante{border-color:#c2410c;background:#fff3ed}.reg-hint.plomb{border-color:#7c3aed;background:#f7f2ff}
+.question-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:9px}.question-card h4{font-size:13px;margin:0 0 7px}.question-card .question-answer{display:grid;grid-template-columns:120px 1fr;gap:8px}.question-card .why{font-size:11px;color:var(--muted);margin-top:7px}.question-group-title{font-size:13px;font-weight:850;color:#0d2744;margin:16px 4px 8px;text-transform:uppercase;letter-spacing:.6px}.answer-status{font-size:10px;border-radius:99px;padding:3px 7px;background:#edf2f7;color:#53606f;margin-left:6px}
+.viewer{background:#07101d}.viewer-stage{background:#172231}.viewer-tools button.active{background:#ffb84a;color:#101721;border-color:#ffb84a}.smart-toggle{color:#dce5f0!important}.smart-toggle input{width:auto!important}.recording-time{font-variant-numeric:tabular-nums;font-weight:800}.audio-controls{display:flex;gap:8px;align-items:center}.audio-controls button{flex:1}.photo-view-wrap video{display:block;max-width:100%;max-height:70vh;margin:0 auto;border-radius:10px}.photo-view-wrap audio{width:100%;margin-top:10px}
+.pathology-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.pathology-legend span{font-size:10px;padding:5px 7px;border-radius:99px;border:1px solid var(--line);background:#fafbfc}.media-chip{background:#111827;color:#fff}.ocr-overlay{position:absolute;inset:0;background:rgba(7,16,29,.82);display:grid;place-items:center;color:white;z-index:40;padding:20px;text-align:center}
+@media(max-width:650px){.form-grid,.report-grid{grid-template-columns:1fr}.question-card .question-answer{grid-template-columns:1fr}.tabs{margin-left:-4px;margin-right:-4px}.viewer-tools{padding-bottom:calc(7px + env(safe-area-inset-bottom))}}
