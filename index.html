@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#111827">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>FOURNIX Diagnostic</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <div id="lockScreen" class="screen center-screen">
+    <div class="auth-card">
+      <div class="brand-mark">F</div>
+      <h1>FOURNIX Diagnostic</h1>
+      <p id="authText">Carnet de visite structure et bâtiment.</p>
+
+      <div id="setupBox" class="hidden">
+        <label>Créer un code PIN</label>
+        <input id="setupPin" type="password" inputmode="numeric" maxlength="12" autocomplete="new-password" placeholder="4 chiffres minimum">
+        <label>Confirmer le code PIN</label>
+        <input id="setupPin2" type="password" inputmode="numeric" maxlength="12" autocomplete="new-password" placeholder="Répéter le code PIN">
+        <button id="setupBtn" class="primary full">Activer le stockage chiffré</button>
+      </div>
+
+      <div id="unlockBox" class="hidden">
+        <label>Code PIN</label>
+        <input id="unlockPin" type="password" inputmode="numeric" maxlength="12" autocomplete="current-password" placeholder="Ton code PIN">
+        <button id="unlockBtn" class="primary full">Déverrouiller</button>
+      </div>
+
+      <p id="authStatus" class="status"></p>
+      <p class="small muted">Les projets, plans, photos et notes sont chiffrés sur cet appareil.</p>
+    </div>
+  </div>
+
+  <div id="app" class="hidden">
+    <header class="topbar">
+      <div>
+        <div class="brand-title">FOURNIX Diagnostic</div>
+        <div id="headerSubtitle" class="small top-muted">Visites et cartographie de désordres</div>
+      </div>
+      <button id="lockBtn" class="ghost small-btn">Verrouiller</button>
+    </header>
+
+    <main id="homeView" class="view active">
+      <section class="hero">
+        <div>
+          <h2>Projets</h2>
+          <p>Prépare, relève et documente tes visites directement sur site.</p>
+        </div>
+        <button id="newProjectBtn" class="primary">Nouveau projet</button>
+      </section>
+
+      <section id="projectList" class="project-grid"></section>
+
+      <section class="card">
+        <h3>Outils terrain</h3>
+        <div class="tool-summary">
+          <span>PDF</span><span>DWG / DXF bêta</span><span>Photos localisées</span><span>Annotations vectorielles</span><span>Mesures calibrées</span><span>Export visite</span>
+        </div>
+      </section>
+    </main>
+
+    <main id="projectView" class="view">
+      <div class="project-header">
+        <button id="backHomeBtn" class="ghost">Retour</button>
+        <div class="project-title-wrap">
+          <h2 id="projectTitle">Projet</h2>
+          <p id="projectMetaLine"></p>
+        </div>
+        <button id="editProjectBtn" class="ghost">Modifier</button>
+      </div>
+
+      <nav class="tabs">
+        <button data-project-tab="plans" class="active">Plans</button>
+        <button data-project-tab="observations">Observations</button>
+        <button data-project-tab="notes">Notes</button>
+        <button data-project-tab="checklist">Checklist</button>
+        <button data-project-tab="export">Export</button>
+      </nav>
+
+      <section id="projectTabPlans" class="project-tab active">
+        <div class="card">
+          <div class="section-line">
+            <div>
+              <h3>Plans et documents</h3>
+              <p class="small muted">PDF, image, DWG ou DXF.</p>
+            </div>
+            <label class="primary file-btn">
+              Importer
+              <input id="planInput" type="file" accept=".pdf,.dwg,.dxf,image/*">
+            </label>
+          </div>
+          <div id="planList"></div>
+        </div>
+      </section>
+
+      <section id="projectTabObservations" class="project-tab">
+        <div class="card">
+          <div class="section-line">
+            <div>
+              <h3>Observations de visite</h3>
+              <p class="small muted">Toutes les pathologies et photos placées sur les plans.</p>
+            </div>
+          </div>
+          <div class="filters-row">
+            <select id="obsFilter">
+              <option value="all">Toutes</option>
+              <option value="pathology">Pathologies</option>
+              <option value="photo">Photos</option>
+            </select>
+          </div>
+          <div id="observationList"></div>
+        </div>
+      </section>
+
+      <section id="projectTabNotes" class="project-tab">
+        <div class="card">
+          <h3>Notes de visite</h3>
+          <textarea id="visitNotes" class="notes-area" placeholder="Contexte, historique, échange avec le client, hypothèses, éléments à vérifier au bureau..."></textarea>
+          <div class="section-line">
+            <p class="small muted">Enregistrement automatique.</p>
+            <button id="saveNotesBtn" class="secondary">Enregistrer</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="projectTabChecklist" class="project-tab">
+        <div class="card">
+          <h3>Checklist diagnostic</h3>
+          <p class="small muted">Une trame simple pour éviter les oublis pendant la visite.</p>
+          <div id="checklistBox" class="checklist"></div>
+        </div>
+      </section>
+
+      <section id="projectTabExport" class="project-tab">
+        <div class="card">
+          <h3>Dossier de visite</h3>
+          <p class="small muted">Produit un ZIP avec les plans originaux, les photos, les observations CSV et les notes.</p>
+          <button id="exportVisitBtn" class="primary full">Exporter le dossier de visite</button>
+        </div>
+        <div class="card">
+          <h3>Sauvegarde chiffrée</h3>
+          <p class="small muted">Sauvegarde transportable du projet. Le fichier est chiffré avec un mot de passe séparé.</p>
+          <button id="backupProjectBtn" class="secondary full">Créer une sauvegarde chiffrée</button>
+          <label class="secondary file-btn full center-label">
+            Restaurer une sauvegarde
+            <input id="restoreProjectInput" type="file" accept=".fournixdiag,.json">
+          </label>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="viewer" class="viewer hidden">
+    <div class="viewer-top">
+      <button id="closeViewerBtn" class="viewer-btn">Retour</button>
+      <div class="viewer-file">
+        <strong id="viewerFileName">Plan</strong>
+        <span id="pageInfo">1 / 1</span>
+      </div>
+      <div class="viewer-zoom">
+        <button id="zoomOutBtn" class="viewer-btn">−</button>
+        <button id="fitBtn" class="viewer-btn">Ajuster</button>
+        <button id="zoomInBtn" class="viewer-btn">+</button>
+      </div>
+    </div>
+
+    <div id="viewerStage" class="viewer-stage">
+      <div id="planContent" class="plan-content">
+        <canvas id="pdfCanvas" class="base-layer"></canvas>
+        <div id="cadBase" class="base-layer cad-layer"></div>
+        <img id="imageBase" class="base-layer image-layer" alt="">
+        <svg id="annotationLayer" class="annotation-layer" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div id="viewerLoading" class="viewer-loading hidden">Chargement du plan…</div>
+    </div>
+
+    <div class="viewer-pagebar">
+      <button id="prevPageBtn" class="viewer-btn">Page précédente</button>
+      <button id="nextPageBtn" class="viewer-btn">Page suivante</button>
+      <button id="exportPageBtn" class="viewer-btn">PDF annoté</button>
+    </div>
+
+    <div class="draw-style">
+      <label>Couleur <input id="drawColor" type="color" value="#d11a2a"></label>
+      <label>Trait <input id="drawWidth" type="range" min="1" max="10" value="3"></label>
+    </div>
+
+    <div id="viewerTools" class="viewer-tools">
+      <button data-tool="pan" class="active">Main</button>
+      <button data-tool="freehand">Crayon</button>
+      <button data-tool="line">Ligne</button>
+      <button data-tool="arrow">Flèche</button>
+      <button data-tool="rect">Zone</button>
+      <button data-tool="text">Texte</button>
+      <button data-tool="pathology">Pathologie</button>
+      <button data-tool="photo">Photo</button>
+      <button data-tool="calibrate">Calibrer</button>
+      <button data-tool="measure">Mesurer</button>
+      <button data-tool="erase">Effacer</button>
+      <button id="undoBtn">Annuler</button>
+    </div>
+  </div>
+
+  <dialog id="projectDialog">
+    <form method="dialog" id="projectForm">
+      <h3 id="projectDialogTitle">Nouveau projet</h3>
+      <input id="projectIdField" type="hidden">
+      <label>Nom du projet</label>
+      <input id="projectName" required placeholder="Ex. Diagnostic structure - Immeuble A">
+      <label>Client</label>
+      <input id="projectClient" placeholder="Client">
+      <label>Site / adresse</label>
+      <input id="projectSite" placeholder="Adresse ou nom du site">
+      <label>Date de visite</label>
+      <input id="projectDate" type="date">
+      <label>Interlocuteur</label>
+      <input id="projectContact" placeholder="Nom / fonction">
+      <div class="dialog-actions">
+        <button value="cancel" class="secondary">Annuler</button>
+        <button id="saveProjectBtn" value="default" class="primary">Enregistrer</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="observationDialog">
+    <form method="dialog" id="observationForm">
+      <h3 id="obsDialogTitle">Observation</h3>
+      <label>Type de pathologie</label>
+      <select id="pathologyType">
+        <option>Fissure</option>
+        <option>Épaufrure</option>
+        <option>Corrosion</option>
+        <option>Armature apparente</option>
+        <option>Infiltration / humidité</option>
+        <option>Déformation</option>
+        <option>Décollement</option>
+        <option>Dégradation du béton</option>
+        <option>Dégradation de maçonnerie</option>
+        <option>Autre</option>
+      </select>
+      <label>Importance</label>
+      <select id="severity">
+        <option value="info">À noter</option>
+        <option value="watch">À surveiller</option>
+        <option value="important">Important</option>
+        <option value="critical">Critique</option>
+      </select>
+      <label>Description</label>
+      <textarea id="obsDescription" placeholder="Ex. fissure verticale env. 0,5 mm, continue sur 1,20 m..."></textarea>
+      <label>Photo liée</label>
+      <input id="obsPhotoInput" type="file" accept="image/*" capture="environment">
+      <div class="dialog-actions">
+        <button value="cancel" class="secondary">Annuler</button>
+        <button id="saveObservationBtn" value="default" class="primary">Placer sur le plan</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="photoDialog">
+    <form method="dialog" id="photoForm">
+      <h3>Photo localisée</h3>
+      <label>Prendre une photo ou choisir dans la galerie</label>
+      <input id="photoInput" type="file" accept="image/*" capture="environment" required>
+      <label>Commentaire</label>
+      <textarea id="photoDescription" placeholder="Ex. sous-face de poutre P3, corrosion visible..."></textarea>
+      <div class="dialog-actions">
+        <button value="cancel" class="secondary">Annuler</button>
+        <button id="savePhotoBtn" value="default" class="primary">Placer la photo</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="photoViewerDialog" class="photo-dialog">
+    <div class="photo-view-wrap">
+      <img id="photoViewerImg" alt="Photo d'observation">
+      <p id="photoViewerCaption"></p>
+      <button id="closePhotoViewerBtn" class="primary">Fermer</button>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
