@@ -280,6 +280,7 @@
         <span id="pageInfo">1 / 1</span>
       </div>
       <div class="viewer-zoom">
+        <button id="quickUndoBtn" class="viewer-btn quick-undo" title="Annuler la dernière action">↶</button>
         <button id="zoomOutBtn" class="viewer-btn">−</button>
         <button id="fitBtn" class="viewer-btn">Ajuster</button>
         <button id="zoomInBtn" class="viewer-btn">+</button>
@@ -287,6 +288,16 @@
     </div>
 
     <div id="viewerStage" class="viewer-stage">
+      <div id="cadProBase" class="cad-pro-base hidden"></div>
+      <div id="cadModeBar" class="cad-modebar hidden">
+        <span class="cad-mode-title">DWG · Espace objet</span>
+        <button id="cadFitAutoBtn" class="cad-mini-btn">Ajuster</button>
+        <button id="cadSavedViewBtn" class="cad-mini-btn">Vue DWG</button>
+        <button id="cadExtentsBtn" class="cad-mini-btn">Tout</button>
+        <button id="cadThemeBtn" class="cad-mini-btn">Fond clair</button>
+        <button id="cadAnnotationsBtn" class="cad-mini-btn">Annoter</button>
+        <span id="cadStatus" class="cad-status"></span>
+      </div>
       <div id="planContent" class="plan-content">
         <canvas id="pdfCanvas" class="base-layer"></canvas>
         <div id="cadBase" class="base-layer cad-layer"></div>
@@ -297,8 +308,8 @@
     </div>
 
     <div class="viewer-pagebar">
-      <button id="prevPageBtn" class="viewer-btn">Page précédente</button>
-      <button id="nextPageBtn" class="viewer-btn">Page suivante</button>
+      <button id="prevPageBtn" class="viewer-btn">◀ Préc.</button>
+      <button id="nextPageBtn" class="viewer-btn">Suiv. ▶</button>
       <button id="exportPageBtn" class="viewer-btn">PDF annoté</button>
     </div>
 
@@ -424,6 +435,32 @@
       <input id="photoInput" type="file" accept="image/*" capture="environment" required>
       <label>Commentaire</label>
       <textarea id="photoDescription" placeholder="Ex. sous-face de poutre P3, corrosion visible..."></textarea>
+
+      <div class="photo-direction-box">
+        <div class="section-line">
+          <div>
+            <label class="inline-title">Direction de prise de vue</label>
+            <p class="small muted">La flèche partira du repère photo et indiquera la direction regardée.</p>
+          </div>
+          <label class="smart-toggle photo-dir-toggle"><input id="photoDirectionEnabled" type="checkbox" checked> Flèche</label>
+        </div>
+        <div id="photoDirectionControls">
+          <div class="direction-preview-row">
+            <div id="photoDirectionPreview" class="direction-preview">↑</div>
+            <div class="direction-slider-wrap">
+              <input id="photoDirectionAngle" type="range" min="0" max="359" value="0">
+              <span id="photoDirectionAngleValue">0°</span>
+            </div>
+          </div>
+          <div class="direction-presets">
+            <button type="button" data-photo-angle="270">←</button>
+            <button type="button" data-photo-angle="0">↑</button>
+            <button type="button" data-photo-angle="90">→</button>
+            <button type="button" data-photo-angle="180">↓</button>
+          </div>
+        </div>
+      </div>
+
       <div class="dialog-actions">
         <button value="cancel" class="secondary">Annuler</button>
         <button id="savePhotoBtn" value="default" class="primary">Placer la photo</button>

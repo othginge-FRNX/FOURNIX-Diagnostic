@@ -250,3 +250,132 @@ body{background:radial-gradient(circle at top right,#fff1e7 0,#fff8f3 34%,#f7f4f
     display:none;
   }
 }
+
+
+/* FOURNIX FieldDiag V9 — photo direction, quick undo, CAD model space */
+.quick-undo{
+  background:linear-gradient(180deg,#fb923c,#ea580c)!important;
+  border-color:#fb923c!important;
+  font-size:18px!important;
+  font-weight:900;
+}
+
+.photo-direction-box{
+  margin-top:12px;
+  padding:11px;
+  border:1px solid #fed7aa;
+  border-radius:12px;
+  background:#fff7ed;
+}
+.inline-title{margin:0;color:#9a3412;font-weight:800}
+.photo-dir-toggle{white-space:nowrap}
+.direction-preview-row{display:flex;align-items:center;gap:12px;margin-top:8px}
+.direction-preview{
+  width:48px;height:48px;border-radius:50%;
+  display:grid;place-items:center;
+  background:linear-gradient(180deg,#fb923c,#ea580c);
+  color:white;font-size:28px;font-weight:900;
+  flex:0 0 auto;
+}
+.direction-slider-wrap{display:flex;align-items:center;gap:8px;flex:1}
+.direction-slider-wrap input{padding:0}
+.direction-slider-wrap span{font-size:12px;font-weight:800;color:#9a3412;min-width:38px}
+.direction-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.direction-presets button{
+  border:1px solid #fdba74;background:white;color:#9a3412;
+  border-radius:8px;padding:7px;font-weight:900;
+}
+
+.cad-pro-base{
+  position:absolute;
+  inset:0;
+  background:#05070d;
+  z-index:1;
+  overflow:hidden;
+  touch-action:none;
+}
+.cad-pro-base canvas{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+}
+.cad-modebar{
+  position:absolute;
+  z-index:7;
+  left:8px;right:8px;top:8px;
+  display:flex;
+  gap:5px;
+  align-items:center;
+  overflow-x:auto;
+  padding:6px;
+  border-radius:11px;
+  background:rgba(5,7,13,.88);
+  border:1px solid rgba(255,255,255,.14);
+  backdrop-filter:blur(8px);
+}
+.cad-mode-title{
+  color:#fdba74;
+  font-size:11px;
+  font-weight:900;
+  white-space:nowrap;
+  padding:0 4px;
+}
+.cad-mini-btn{
+  background:#1f2937;
+  color:white;
+  border:1px solid #4b5563;
+  padding:6px 8px;
+  border-radius:7px;
+  font-size:10px;
+  white-space:nowrap;
+}
+.cad-status{
+  margin-left:auto;
+  color:#d1d5db;
+  font-size:9px;
+  white-space:nowrap;
+  padding-right:4px;
+}
+.cad-tools-hidden{display:none!important}
+
+.viewer-pagebar{
+  min-width:0;
+}
+.viewer-pagebar button{
+  min-width:0!important;
+}
+
+@media(max-width:650px){
+  .viewer{
+    grid-template-rows:auto 1fr auto auto auto;
+  }
+  .viewer-pagebar{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:5px;
+    overflow:visible!important;
+    padding:6px max(6px,env(safe-area-inset-right)) 6px max(6px,env(safe-area-inset-left));
+  }
+  .viewer-pagebar .viewer-btn{
+    width:100%;
+    min-width:0;
+    padding:8px 4px;
+    font-size:10px;
+    white-space:normal;
+    line-height:1.1;
+  }
+  .viewer-zoom{
+    max-width:100%;
+  }
+  .viewer-zoom .viewer-btn{
+    padding:7px 8px;
+  }
+  .cad-modebar{
+    top:6px;
+    left:5px;right:5px;
+  }
+  .cad-status{
+    display:none;
+  }
+}
+

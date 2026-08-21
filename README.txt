@@ -92,3 +92,14 @@ Identité officielle V8
 - Monogramme : FD
 - Palette : orange
 - Les identifiants de stockage local restent identiques pour préserver les projets déjà créés.
+
+
+V9 — améliorations terrain et DWG
+- Photos sur plan : flèche de direction de prise de vue avec angle réglable.
+- Bouton ↶ permanent dans la barre supérieure du lecteur : annule immédiatement la dernière annotation.
+- La gomme et le bouton Supprimer sont conservés.
+- Nouveau lecteur DWG « Espace objet » : fond sombre, pan/zoom, vue automatique, vue DWG enregistrée, extents complets et fond sombre/clair.
+- Le moteur CAD avancé utilise un rendu WebGL/Canvas local dans le navigateur.
+- Un bouton « Annoter » permet de revenir au convertisseur SVG historique pour poser les annotations sur DWG.
+- Le convertisseur SVG reste un mode de secours, car il ne prend pas en charge tous les objets AutoCAD.
+- Barre de pages PDF revue pour téléphone : Préc., Suiv. et PDF annoté tiennent sur la largeur de l'écran.

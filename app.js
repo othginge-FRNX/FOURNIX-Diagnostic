@@ -27,6 +27,11 @@
   let currentPage = 1;
   let totalPages = 1;
   let currentCadSvg = null;
+  let cadProViewer = null;
+  let cadDisplayMode = 'pro';
+  let cadThemeDark = true;
+  const CAD_VIEWER_CDN = 'https://cdn.jsdelivr.net/npm/@flyfish-dev/cad-viewer@0.8.0/';
+
 
   let baseW = 1000;
   let baseH = 1400;
@@ -699,6 +704,10 @@
     currentCadSvg = null;
     undoStack = [];
     $('viewerFileName').textContent = currentFile.name;
+    $('viewerTools').classList.remove('cad-tools-hidden');
+    $('draw-style').classList.remove('cad-tools-hidden');
+    $('exportPageBtn').disabled=false;
+    $('exportPageBtn').title='';
     $('viewer').classList.remove('hidden');
     $('viewerLoading').classList.remove('hidden');
     resetView();
@@ -717,8 +726,12 @@
         await renderCad();
       }
       updatePageInfo();
-      renderAnnotations();
-      fitToScreen();
+      if(currentFile.kind!=='cad' || cadDisplayMode==='legacy'){
+        renderAnnotations();
+        fitToScreen();
+      }else{
+        $('cadModeBar').classList.remove('hidden');
+      }
       if(addHistory) pushAppHistory({screen:'viewer',projectId:activeProject?.id||null,fileId:currentFile.id,page:currentPage,tool:activeTool});
     } catch (err) {
       console.error(err);
@@ -729,6 +742,7 @@
   }
 
   function closeViewer(addHistory=true) {
+    destroyCadProViewer();
     $('viewer').classList.add('hidden');
     clearBaseLayers();
     currentFile = null;
@@ -748,6 +762,9 @@
     $('imageBase').style.display='none';
     $('cadBase').style.display='none';
     $('cadBase').innerHTML='';
+    if($('cadProBase')) $('cadProBase').classList.add('hidden');
+    if($('cadModeBar')) $('cadModeBar').classList.add('hidden');
+    $('planContent').style.display='';
   }
 
   async function renderPdfPage() {
@@ -787,9 +804,119 @@
     el.style.display='block';
   }
 
+  function dwgVersionLabel(bytes){
+    try{
+      const sig=new TextDecoder('ascii').decode(bytes.slice(0,6));
+      const map={
+        AC1015:'AutoCAD 2000',AC1018:'AutoCAD 2004',AC1021:'AutoCAD 2007',
+        AC1024:'AutoCAD 2010',AC1027:'AutoCAD 2013',AC1032:'AutoCAD 2018+'
+      };
+      return `${sig}${map[sig]?' · '+map[sig]:''}`;
+    }catch{return 'DWG'}
+  }
+
+  async function destroyCadProViewer(){
+    if(cadProViewer){
+      try{cadProViewer.destroy()}catch{}
+      cadProViewer=null;
+    }
+    if($('cadProBase')){
+      $('cadProBase').innerHTML='';
+      $('cadProBase').classList.add('hidden');
+    }
+  }
+
   async function renderCad() {
+    cadDisplayMode='pro';
+    return renderCadPro();
+  }
+
+  async function renderCadPro(){
     clearBaseLayers();
-    $('viewerLoading').textContent='Lecture du DWG / DXF…';
+    await destroyCadProViewer();
+    $('viewerLoading').textContent='Ouverture de l’espace objet DWG…';
+    $('viewerTools').classList.add('cad-tools-hidden');
+    $('draw-style').classList.add('cad-tools-hidden');
+    $('planContent').style.display='none';
+    $('cadProBase').classList.remove('hidden');
+    $('cadModeBar').classList.remove('hidden');
+    $('cadAnnotationsBtn').textContent='Annoter';
+    $('cadStatus').textContent=currentFile.ext==='dwg'
+      ? dwgVersionLabel(currentFileBuffer)
+      : 'DXF';
+
+    try{
+      const mod=await import(CAD_VIEWER_CDN + '+esm');
+      const {CadViewer}=mod;
+      cadProViewer=new CadViewer({
+        container:$('cadProBase'),
+        renderer:'auto',
+        wasmPath:CAD_VIEWER_CDN + 'dist/wasm/',
+        useWorker:false,
+        autoFit:true,
+        canvasOptions:{
+          background:cadThemeDark?'#05070d':'#f7f8fb',
+          foreground:cadThemeDark?'#f8fafc':'#111827',
+          fitMode:'auto',
+          contrastMode:'adaptive',
+          minColorContrast:2.45,
+          showPageBounds:false,
+          showUnsupportedMarkers:false,
+          enableSpatialIndex:true,
+          spatialIndexCellCount:96,
+          maxCurveSegments:72,
+          maxVisibleTextLabels:2400,
+          powerPreference:'high-performance'
+        },
+        onLoadProgress(progress){
+          if(progress?.message) $('viewerLoading').textContent=progress.message;
+        },
+        onReferenceStateChange(state){
+          const missing=state?.missing||[];
+          if(missing.length){
+            $('cadStatus').textContent=`${dwgVersionLabel(currentFileBuffer)} · ${missing.length} police(s) SHX manquante(s)`;
+          }
+        }
+      });
+
+      await cadProViewer.loadBuffer(currentFileBuffer.slice().buffer,currentFile.name);
+      cadProViewer.fit('auto');
+
+      const doc=cadProViewer.getDocument?.();
+      if(doc){
+        const layerCount=Object.keys(doc.layers||{}).length;
+        const entityCount=(doc.entities||[]).length;
+        const warnings=(doc.warnings||[]).length;
+        $('cadStatus').textContent=[
+          currentFile.ext==='dwg'?dwgVersionLabel(currentFileBuffer):'DXF',
+          layerCount?`${layerCount} calques`:'',
+          entityCount?`${entityCount} objets`:'',
+          warnings?`${warnings} avert.`:''
+        ].filter(Boolean).join(' · ');
+      }
+
+      $('exportPageBtn').disabled=true;
+      $('exportPageBtn').title='Passe en mode Annoter pour exporter un PDF annoté';
+      $('fitBtn').textContent='Ajuster';
+    }catch(err){
+      console.error('CAD pro viewer failed',err);
+      showToast('Mode CAD avancé indisponible. Ouverture du mode annotation…',3200);
+      await renderCadLegacy();
+    }
+  }
+
+  async function renderCadLegacy(){
+    await destroyCadProViewer();
+    cadDisplayMode='legacy';
+    clearBaseLayers();
+    $('viewerLoading').textContent='Préparation du mode annotation DWG…';
+    $('viewerTools').classList.remove('cad-tools-hidden');
+    $('draw-style').classList.remove('cad-tools-hidden');
+    $('planContent').style.display='';
+    $('cadModeBar').classList.remove('hidden');
+    $('cadAnnotationsBtn').textContent='Espace objet';
+    $('cadStatus').textContent='Mode annotation · conversion SVG';
+
     const mod = await import('https://cdn.jsdelivr.net/npm/@mlightcad/libredwg-web/dist/libredwg-web.js');
     const lib = await mod.LibreDwg.create();
     const type = currentFile.ext==='dxf' ? mod.Dwg_File_Type.DXF : mod.Dwg_File_Type.DWG;
@@ -798,23 +925,72 @@
     const svgString = lib.dwg_to_svg(dbObj);
     try { lib.dwg_free(dwg); } catch {}
     currentCadSvg = svgString;
+
     const parser = new DOMParser();
     const doc = parser.parseFromString(svgString,'image/svg+xml');
     const svg = doc.documentElement;
     let ratio = 0.75;
     const vb = (svg.getAttribute('viewBox')||'').split(/\s+/).map(Number);
     if (vb.length===4 && vb[2]>0 && vb[3]>0) ratio = vb[3]/vb[2];
+
     baseW = 1200;
     baseH = Math.max(500,Math.min(1800,baseW*ratio));
     setContentSize();
     svg.setAttribute('width','100%');
     svg.setAttribute('height','100%');
     svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+
     const box = $('cadBase');
     box.innerHTML='';
     box.appendChild(document.importNode(svg,true));
     box.style.display='block';
+
+    $('exportPageBtn').disabled=false;
+    $('exportPageBtn').title='';
+    renderAnnotations();
+    fitToScreen();
   }
+
+  async function toggleCadMode(){
+    if(!currentFile || currentFile.kind!=='cad') return;
+    $('viewerLoading').classList.remove('hidden');
+    try{
+      if(cadDisplayMode==='pro') await renderCadLegacy();
+      else await renderCadPro();
+    }finally{
+      $('viewerLoading').classList.add('hidden');
+    }
+  }
+
+  function cadFit(mode='auto'){
+    if(cadDisplayMode==='pro' && cadProViewer){
+      try{cadProViewer.fit(mode)}catch{}
+    }else{
+      fitToScreen();
+    }
+  }
+
+  function cadZoom(dir){
+    if(cadDisplayMode==='pro' && cadProViewer){
+      try{dir>0?cadProViewer.zoomIn():cadProViewer.zoomOut()}catch{}
+    }else{
+      setZoom(dir>0?zoom*1.3:zoom/1.3,{x:innerWidth/2,y:innerHeight/2});
+    }
+  }
+
+  function toggleCadTheme(){
+    cadThemeDark=!cadThemeDark;
+    if(cadProViewer){
+      try{
+        cadProViewer.setCanvasOptions({
+          background:cadThemeDark?'#05070d':'#f7f8fb',
+          foreground:cadThemeDark?'#f8fafc':'#111827'
+        });
+      }catch{}
+    }
+    $('cadThemeBtn').textContent=cadThemeDark?'Fond clair':'Fond sombre';
+  }
+
 
   function setContentSize() {
     const c = $('planContent');
@@ -993,6 +1169,20 @@
     } else if(['photo','video','audio'].includes(a.type)){
       const g=svgEl('g',{'data-ann-id':a.id}); const s=24;
       const fill=a.type==='photo'?'#0f2038':a.type==='video'?'#7c3aed':'#0f766e';
+
+      if(a.type==='photo' && a.directionEnabled!==false && Number.isFinite(Number(a.directionAngle))){
+        const angle=(Number(a.directionAngle)-90)*Math.PI/180;
+        const len=46;
+        const x1=a.x+Math.cos(angle)*16, y1=a.y+Math.sin(angle)*16;
+        const x2=a.x+Math.cos(angle)*len, y2=a.y+Math.sin(angle)*len;
+        g.appendChild(svgEl('line',{x1,y1,x2,y2,stroke:'#f97316','stroke-width':3,'vector-effect':'non-scaling-stroke'}));
+        const ah=10, a1=angle+Math.PI*0.82, a2=angle-Math.PI*0.82;
+        g.appendChild(svgEl('polyline',{
+          points:`${x2+Math.cos(a1)*ah},${y2+Math.sin(a1)*ah} ${x2},${y2} ${x2+Math.cos(a2)*ah},${y2+Math.sin(a2)*ah}`,
+          fill:'none',stroke:'#f97316','stroke-width':3,'stroke-linecap':'round','stroke-linejoin':'round','vector-effect':'non-scaling-stroke'
+        }));
+      }
+
       g.appendChild(svgEl('rect',{x:a.x-s/2,y:a.y-s/2,width:s,height:s,rx:5,fill,stroke:'#fff','stroke-width':2,'vector-effect':'non-scaling-stroke'}));
       const t=svgEl('text',{x:a.x,y:a.y+4,fill:'#fff','font-size':10,'text-anchor':'middle'});t.textContent=a.type==='photo'?'P':a.type==='video'?'▶':'A';g.appendChild(t);el=g;g.style.cursor='pointer';
       g.addEventListener('click',e=>{e.stopPropagation();if(a.type==='photo')viewPhotoAnnotation(a);else viewMediaAnnotation(a)});
@@ -1216,10 +1406,31 @@
     await commitAnnotation(ann);pendingPoint=null;pendingCrack=null;$('observationDialog').close();showToast('Observation placée');
   }
 
+
+  function updatePhotoDirectionPreview(){
+    const enabled=$('photoDirectionEnabled')?.checked!==false;
+    const angle=Number($('photoDirectionAngle')?.value||0);
+    if($('photoDirectionControls')) $('photoDirectionControls').style.opacity=enabled?'1':'.35';
+    if($('photoDirectionAngleValue')) $('photoDirectionAngleValue').textContent=`${Math.round(angle)}°`;
+    if($('photoDirectionPreview')){
+      $('photoDirectionPreview').textContent='↑';
+      $('photoDirectionPreview').style.transform=`rotate(${angle}deg)`;
+    }
+  }
+
   async function savePhotoAnnotation() {
     if(!pendingPoint)return;const f=$('photoInput').files?.[0];if(!f){showToast('Choisis une photo');return}
     const photoId=uuid('photo');await putSecureBinary(photoId,'photo',activeProject.id,await compressImageFile(f));
-    const ann={...makeBaseAnn('photo'),x:pendingPoint.x,y:pendingPoint.y,photoId,photoMime:'image/jpeg',photoName:(f.name||'photo').replace(/\.[^.]+$/,'')+'.jpg',description:$('photoDescription').value.trim()};
+    const ann={
+      ...makeBaseAnn('photo'),
+      x:pendingPoint.x,y:pendingPoint.y,
+      photoId,
+      photoMime:'image/jpeg',
+      photoName:(f.name||'photo').replace(/\.[^.]+$/,'')+'.jpg',
+      description:$('photoDescription').value.trim(),
+      directionEnabled:$('photoDirectionEnabled')?.checked!==false,
+      directionAngle:Number($('photoDirectionAngle')?.value||0)
+    };
     await commitAnnotation(ann);pendingPoint=null;$('photoDialog').close();showToast('Photo placée');
   }
 
@@ -2007,14 +2218,26 @@
   $('restoreProjectInput').onchange=async e=>{const f=e.target.files?.[0];e.target.value='';if(f)await restoreBackup(f)};
 
   $('closeViewerBtn').onclick=closeViewer;
-  $('zoomInBtn').onclick=()=>setZoom(zoom*1.3,{x:innerWidth/2,y:innerHeight/2});
-  $('zoomOutBtn').onclick=()=>setZoom(zoom/1.3,{x:innerWidth/2,y:innerHeight/2});
-  $('fitBtn').onclick=fitToScreen;
+  $('zoomInBtn').onclick=()=>currentFile?.kind==='cad'?cadZoom(1):setZoom(zoom*1.3,{x:innerWidth/2,y:innerHeight/2});
+  $('zoomOutBtn').onclick=()=>currentFile?.kind==='cad'?cadZoom(-1):setZoom(zoom/1.3,{x:innerWidth/2,y:innerHeight/2});
+  $('fitBtn').onclick=()=>currentFile?.kind==='cad'?cadFit('auto'):fitToScreen();
   $('prevPageBtn').onclick=()=>changePage(-1);
   $('nextPageBtn').onclick=()=>changePage(1);
   $('exportPageBtn').onclick=exportCurrentPagePdf;
   document.querySelectorAll('#viewerTools [data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
   $('undoBtn').onclick=undo;
+  $('quickUndoBtn').onclick=undo;
+  $('cadFitAutoBtn').onclick=()=>cadFit('auto');
+  $('cadSavedViewBtn').onclick=()=>cadFit('saved-view');
+  $('cadExtentsBtn').onclick=()=>cadFit('extents');
+  $('cadThemeBtn').onclick=toggleCadTheme;
+  $('cadAnnotationsBtn').onclick=toggleCadMode;
+  $('photoDirectionEnabled').onchange=updatePhotoDirectionPreview;
+  $('photoDirectionAngle').oninput=updatePhotoDirectionPreview;
+  document.querySelectorAll('[data-photo-angle]').forEach(b=>b.onclick=()=>{
+    $('photoDirectionAngle').value=b.dataset.photoAngle;
+    updatePhotoDirectionPreview();
+  });
   $('textSize').oninput=()=>{$('textSizeValue').textContent=$('textSize').value};
   $('selectionScale').oninput=()=>{
     if(!selectedAnnId||!selectedBaseAnn)return;const f=Number($('selectionScale').value)/100;$('selectionScaleValue').textContent=$('selectionScale').value+'%';
